@@ -110,12 +110,15 @@ def create_dictionary(soup):
     if "ajom17" in soup.find("publicationStmt").text:
         edition = "Arany János levelezése. (1857–1861), 2004"
         id_edition = "Q338268"
+        publication_date = "2004"
     elif "ajom18" in soup.find("publicationStmt").text:
         edition = "Arany János levelezése. (1862–1865), 2014"
         id_edition = "Q338270"
+        publication_date = "2014"
     elif "ajom19" in soup.find("publicationStmt").text:
         edition = "Arany János levelezése. (1866–1882), 2015"
         id_edition = "Q338271"
+        publication_date = "2015"
     else:
         edition = "Unknown edition"
         print(soup.publicationStmt.text)
@@ -127,20 +130,23 @@ def create_dictionary(soup):
     en_description.append(edition)
 
     # Number of letter
-    pid = soup.
+    pid = soup.publicationStmt.find("idno", {"type": "PID"}).text
+    series_ordinal = pid.split(".")[-1]
 
     # Populate dictionary
     data_dict['Lhu'] = normalize_whitespaces(lhu_value)
     data_dict['Len'] = normalize_whitespaces(lhu_value)
-    data_dict['Dhu'] = ", ".join(hu_desciption)
-    data_dict['Den'] = ", ".join(en_description)
+    data_dict['Dhu'] = '"' + ", ".join(hu_desciption) + '"'
+    data_dict['Den'] = '"' + ", ".join(en_description) + '"'
     data_dict['P1'] = "Q26"
     data_dict['P7'] = sender_id
-    data_dict['P8'] = recipient_id
+    data_dict['P80'] = recipient_id
     data_dict['P41'] = "Q26"
     data_dict['P44'] = id_edition
-    data_dict['P49'] = "0."
-    data_dict['P106'] =
+    data_dict['P49'] = '""""' + "0." + '"'
+    data_dict['P106'] = '""""' + series_ordinal + '"'
+    data_dict['P18'] = '""""' + "Kritikai jegyzetek: 0. oldal. (magyar)" + '"'
+    data_dict['P57'] = '""""' + publication_date + '"'
     write_to_csv(data_dict)
 
 
