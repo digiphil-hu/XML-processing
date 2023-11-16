@@ -67,7 +67,7 @@ def parse_xml(xml_path):
     """
     with open(xml_path, 'r', encoding='utf-8') as file:
         xml_content = file.read()
-    print(xml_path)
+    # print(xml_path)
     soup = BeautifulSoup(xml_content, 'xml')
     create_dictionary(soup)
 
@@ -100,8 +100,8 @@ def create_dictionary(soup):
     sender_tag = soup.correspDesc.find("correspAction", attrs={"type": "sent"})
     if sender_tag:
         sender_tag.persName.idno.decompose()
-        sender = sender_tag.persName.text
-        print(sender)
+        sender = normalize_whitespaces(sender_tag.persName.text)
+    #    print(sender)
     else:
         sender = "Unknown sender"
     if "ajom17" in soup.find("publicationStmt").text:
@@ -114,8 +114,10 @@ def create_dictionary(soup):
         edition = "Unknown edition"
         print(soup.publicationStmt.text)
     hu_desciption.append(sender)
+    hu_desciption.append("kézirat")
     hu_desciption.append(edition)
     en_description.append(revert_persname(sender))
+    en_description.append("manuscript")
     en_description.append(edition)
 
     # Populate dictionary
@@ -161,87 +163,3 @@ def write_to_csv(data_dict):
 # Example usage:
 folder_path = '/home/eltedh/PycharmProjects/DATA/Arany XML/a_tei xml_final'
 iterate_xml_files(folder_path)
-
-'''
-import os
-import csv
-import lxml
-from bs4 import BeautifulSoup
-
-
-def iterate_xml_files(folder_path):
-    """
-    Function to iterate through each XML file in the given folder.
-    """
-    xml_files = [f for f in os.listdir(folder_path) if f.endswith('.xml')]
-
-    for xml_file in xml_files:
-        xml_path = os.path.join(folder_path, xml_file)
-        parse_xml_header(xml_path)
-
-
-def parse_xml_header(xml_path):
-    """
-    Function to parse the TEI XML header and extract relevant information.
-    """
-    with open(xml_path, 'r', encoding='utf-8') as file:
-        xml_content = file.read()
-
-    soup = BeautifulSoup(xml_content, 'xml')
-
-    # Extract information from the TEI header
-    header_dict = create_header_dict(soup)
-
-    # Write the values to CSV
-    write_to_csv(header_dict)
-
-
-def create_header_dict(soup):
-    """
-    Function to create a dictionary with 'Lhu' and 'Len' as keys and their respective values.
-    """
-    header_dict = {}
-
-    # Extract 'Lhu' and 'Len' values from the TEI header
-    title = soup.find('titleStmt').find('title').get_text(strip=True, separator=' ')
-
-    # Normalize 'Lhu' and 'Len' values
-    header_dict['Lhu'] = normalize_string(title)
-    header_dict['Len'] = normalize_string(title)
-
-    return header_dict
-
-
-def normalize_string(input_str):
-    """
-    Function to normalize the input string as per the specified rules.
-    """
-    # Convert to ALLCAPS and then capitalize only the first character of person names
-    words = input_str.upper().split()
-    normalized_words = [word.capitalize() if word.isalpha() else word for word in words]
-    normalized_str = ' '.join(normalized_words)
-    return normalized_str
-
-
-def write_to_csv(header_dict):
-    """
-    Function to write values from the dictionary to a CSV file.
-    """
-    csv_file_path = 'output.csv'
-
-    # Check if the CSV file already exists, if not, create a new one with header
-    if not os.path.exists(csv_file_path):
-        with open(csv_file_path, 'w', newline='', encoding='utf-8') as csv_file:
-            csv_writer = csv.DictWriter(csv_file, fieldnames=['Lhu', 'Len'])
-            csv_writer.writeheader()
-
-    # Append values to the CSV file
-    with open(csv_file_path, 'a', newline='', encoding='utf-8') as csv_file:
-        csv_writer = csv.DictWriter(csv_file, fieldnames=['Lhu', 'Len'])
-        csv_writer.writerow(header_dict)
-
-
-# Example usage
-folder_path = '/home/eltedh/PycharmProjects/DATA/Arany XML/a_tei xml_final'
-iterate_xml_files(folder_path)
-'''
