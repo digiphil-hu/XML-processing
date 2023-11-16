@@ -97,8 +97,11 @@ def create_dictionary(soup):
     # Extract data for 'Dhu', 'Den'
     hu_desciption = []
     en_description = []
-    if soup.correspDesc.find("correspAction", attrs={"type": "sent"}) is not None:
-        if "KOHA"
+    sender_tag = soup.correspDesc.find("correspAction", attrs={"type": "sent"})
+    if sender_tag:
+        sender_tag.persName.idno.decompose()
+        sender = sender_tag.persName.text
+        print(sender)
     else:
         sender = "Unknown sender"
     if "ajom17" in soup.find("publicationStmt").text:
