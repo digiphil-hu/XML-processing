@@ -44,7 +44,7 @@ def normalize_whitespaces(input_str):
     return input_str
 
 
-def iterate_xml_files(folder_path):
+def iterate_xml_files(f_path):
     """
     Iterates through each XML file in the given folder path.
     Calls parse_xml function for each file.
@@ -52,9 +52,9 @@ def iterate_xml_files(folder_path):
     Parameters:
     - folder_path (str): Path of the folder containing XML files.
     """
-    for filename in os.listdir(folder_path):
+    for filename in os.listdir(f_path):
         if filename.endswith(".xml"):
-            xml_path = os.path.join(folder_path, filename)
+            xml_path = os.path.join(f_path, filename)
             parse_xml(xml_path)
 
 
@@ -94,6 +94,10 @@ def create_dictionary(soup):
 
     lhu_value = f"{title}{elveszett} {place_name}{date}"
 
+    # Sender and receiver namespace identity
+    sender_id = soup.correspDesc.find("correspAction", attrs={"type": "sent"}).persName.idno.text
+    recipient_id = soup.correspDesc.find("correspAction", attrs={"type": "recieved"}).persName.idno.text
+
     # Extract data for 'Dhu', 'Den'
     hu_desciption = []
     en_description = []
@@ -101,15 +105,17 @@ def create_dictionary(soup):
     if sender_tag:
         sender_tag.persName.idno.decompose()
         sender = normalize_whitespaces(sender_tag.persName.text)
-    #    print(sender)
     else:
         sender = "Unknown sender"
     if "ajom17" in soup.find("publicationStmt").text:
         edition = "Arany János levelezése. (1857–1861), 2004"
+        id_edition = "Q338268"
     elif "ajom18" in soup.find("publicationStmt").text:
         edition = "Arany János levelezése. (1862–1865), 2014"
+        id_edition = "Q338270"
     elif "ajom19" in soup.find("publicationStmt").text:
         edition = "Arany János levelezése. (1866–1882), 2015"
+        id_edition = "Q338271"
     else:
         edition = "Unknown edition"
         print(soup.publicationStmt.text)
@@ -120,12 +126,21 @@ def create_dictionary(soup):
     en_description.append("manuscript")
     en_description.append(edition)
 
+    # Number of letter
+    pid = soup.
+
     # Populate dictionary
     data_dict['Lhu'] = normalize_whitespaces(lhu_value)
     data_dict['Len'] = normalize_whitespaces(lhu_value)
     data_dict['Dhu'] = ", ".join(hu_desciption)
     data_dict['Den'] = ", ".join(en_description)
-
+    data_dict['P1'] = "Q26"
+    data_dict['P7'] = sender_id
+    data_dict['P8'] = recipient_id
+    data_dict['P41'] = "Q26"
+    data_dict['P44'] = id_edition
+    data_dict['P49'] = "0."
+    data_dict['P106'] =
     write_to_csv(data_dict)
 
 
@@ -154,12 +169,15 @@ def write_to_csv(data_dict):
     Writes the values of the dictionary into a single line of the CSV.
 
     Parameters:
-    - data_dict (dict): Dictionary containing values for 'Lhu' and 'Len'.
+    - data_dict (dict): Dictionary containing values.
     """
+    # with open('output.tsv', 'a', encoding='utf-8') as tsv_file:
+    #     tsv_file.write(f"{data_dict['Lhu']}\t{data_dict['Len']}\t{data_dict['Dhu']}\t{data_dict['Den']}\n")
     with open('output.tsv', 'a', encoding='utf-8') as tsv_file:
-        tsv_file.write(f"{data_dict['Lhu']}\t{data_dict['Len']}\t{data_dict['Dhu']}\t{data_dict['Den']}\n")
+        tsv_file.write('\t'.join([str(value) for value in data_dict.values()]) + '\n')
 
 
 # Example usage:
 folder_path = '/home/eltedh/PycharmProjects/DATA/Arany XML/a_tei xml_final'
-iterate_xml_files(folder_path)
+with open('output.tsv', "w", encoding="utf8") as f:
+    iterate_xml_files(folder_path)
