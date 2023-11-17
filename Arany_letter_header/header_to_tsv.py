@@ -123,10 +123,10 @@ def create_dictionary(soup):
         edition = "Unknown edition"
         print(soup.publicationStmt.text)
     hu_desciption.append(sender)
-    hu_desciption.append("kézirat")
+    hu_desciption.append("levél")
     hu_desciption.append(edition)
     en_description.append(revert_persname(sender))
-    en_description.append("manuscript")
+    en_description.append("letter")
     en_description.append(edition)
 
     # Number of letter
@@ -134,8 +134,8 @@ def create_dictionary(soup):
     series_ordinal = pid.split(".")[-1]
 
     # Populate dictionary
-    data_dict['Lhu'] = normalize_whitespaces(lhu_value)
-    data_dict['Len'] = normalize_whitespaces(lhu_value)
+    data_dict['Lhu'] = '"' + normalize_whitespaces(lhu_value) + '"'
+    data_dict['Len'] = '"' + normalize_whitespaces(lhu_value) + '"'
     data_dict['Dhu'] = '"' + ", ".join(hu_desciption) + '"'
     data_dict['Den'] = '"' + ", ".join(en_description) + '"'
     data_dict['P1'] = "Q26"
@@ -180,7 +180,7 @@ def write_to_csv(data_dict):
     # with open('output.tsv', 'a', encoding='utf-8') as tsv_file:
     #     tsv_file.write(f"{data_dict['Lhu']}\t{data_dict['Len']}\t{data_dict['Dhu']}\t{data_dict['Den']}\n")
     with open('output.tsv', 'a', encoding='utf-8') as tsv_file:
-        tsv_file.write('\t'.join([str(value) for value in data_dict.values()]) + '\n')
+        tsv_file.write(','.join([str(value) for value in data_dict.values()]) + '\n')
 
 
 # Example usage:
