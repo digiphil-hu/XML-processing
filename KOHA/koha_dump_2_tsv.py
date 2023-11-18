@@ -1,10 +1,18 @@
 from bs4 import BeautifulSoup
 
+
 def parse_large_txt_file(input_file_path, output_tsv_path):
     # Open the TSV file for writing
     with open(output_tsv_path, 'w', encoding='utf-8') as tsv_file:
         # Write header to the TSV file
-        tsv_file.write("Controlfield_001\tControlfield_003\n")
+        tsv_file.write("Controlfield_001\t"
+                       "Controlfield_003\t"
+                       "Datafield_010\t"
+                       "Datafield_100a\t"
+                       "Datafield_100d}\t"
+                       "Datafield_856u\t"
+                       "Datafield_902a\t"
+                       "Datafield_906a\n")
 
         # Open the large text file for reading line by line
         with open(input_file_path, 'r', encoding='utf-8') as file:
@@ -53,9 +61,20 @@ def parse_large_txt_file(input_file_path, output_tsv_path):
                         else:
                             datafield_856u = 'Unknown'
 
+                        if soup.find('datafield', {'tag': '902'}):
+                            datafield_902a = soup.find('datafield', {'tag': '902'}).find('subfield',
+                                                                                         {'code': 'a'}).text.strip()
+                        else:
+                            datafield_902a = 'Unknown'
+                        if soup.find('datafield', {'tag': '906'}):
+                            datafield_906a = soup.find('datafield', {'tag': '906'}).find('subfield',
+                                                                                         {'code': 'a'}).text.strip()
+                        else:
+                            datafield_906a = 'Unknown'
+
                         # Write values to the TSV file
                         tsv_file.write(f"{controlfield_001}\t{controlfield_003}\t{datafield_010}\t{datafield_100a}"
-                                       f"\t{datafield_100d}\t{datafield_856u}\n")
+                                       f"\t{datafield_100d}\t{datafield_856u}\t{datafield_902a}\t{datafield_906a}\n")
                 elif in_record_segment:
                     record_segment += line
 
