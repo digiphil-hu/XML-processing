@@ -55,13 +55,13 @@ def create_dictionary(f_path):
                 koha_id = idno_tag.text.replace("KOHA_AUTH:", "").replace("KOHA:", "")
                 corresp_name = idno_tag.get('corresp')
                 if corresp_name:
-                    koha_id_dict[koha_id].add(corresp_name)
+                    koha_id_dict[koha_id].add(corresp_name.strip())
                 else:
                     koha_id_dict[koha_id].add("")
             else:
                 corresp_name = idno_tag.get('corresp')
                 if corresp_name:
-                    names_without_koha_id.add(corresp_name)
+                    names_without_koha_id.add(corresp_name.strip())
 
     write_to_tsv(koha_id_dict, names_without_koha_id)
 
