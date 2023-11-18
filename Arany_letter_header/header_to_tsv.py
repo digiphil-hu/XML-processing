@@ -178,8 +178,6 @@ def write_to_csv(data_dict):
     Parameters:
     - data_dict (dict): Dictionary containing values.
     """
-    # with open('output.tsv', 'a', encoding='utf-8') as tsv_file:
-    #     tsv_file.write(f"{data_dict['Lhu']}\t{data_dict['Len']}\t{data_dict['Dhu']}\t{data_dict['Den']}\n")
     with open('output.tsv', 'a', encoding='utf-8') as tsv_file:
         tsv_file.write(','.join([str(value) for value in data_dict.values()]) + '\n')
 
