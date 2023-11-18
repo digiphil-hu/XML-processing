@@ -134,6 +134,7 @@ def create_dictionary(soup):
     series_ordinal = pid.split(".")[-1]
 
     # Populate dictionary
+    data_dict['qid'] = ""
     data_dict['Lhu'] = '"' + normalize_whitespaces(lhu_value) + '"'
     data_dict['Len'] = '"' + normalize_whitespaces(lhu_value) + '"'
     data_dict['Dhu'] = '"' + ", ".join(hu_desciption) + '"'
@@ -146,7 +147,7 @@ def create_dictionary(soup):
     data_dict['P49'] = '""""' + "0." + '"'
     data_dict['P106'] = '""""' + series_ordinal + '"'
     data_dict['P18'] = '""""' + "Kritikai jegyzetek: 0. oldal. (magyar)" + '"'
-    data_dict['P57'] = '""""' + publication_date + '"'
+    data_dict['P57'] = "+" + publication_date + '-01-01T00:00:00Z/9'
     write_to_csv(data_dict)
 
 
