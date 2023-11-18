@@ -26,7 +26,8 @@ def parse_large_txt_file(input_file_path, output_tsv_path):
                         soup = BeautifulSoup(record_segment, 'xml')
 
                         # Extract values of controlfields
-                        controlfield_001 = soup.find('controlfield', {'tag': '001'}).text.strip()
+                        controlfield_001 = soup.find('controlfield',
+                                                     {'tag': '001'}).text.strip().replace(' ', '')
                         controlfield_003 = soup.find('controlfield', {'tag': '003'}).text.strip()
 
                         # Extract the values of datafields
@@ -58,8 +59,9 @@ def parse_large_txt_file(input_file_path, output_tsv_path):
                 elif in_record_segment:
                     record_segment += line
 
+
 # Example usage
-input_file_path = '/home/eltedh/PycharmProjects/DATA/KOHA/koha_auth_part.txt'
+input_file_path = '/home/eltedh/PycharmProjects/DATA/KOHA/auths.txt'
 output_tsv_path = 'koha_pim.tsv'
 
 parse_large_txt_file(input_file_path, output_tsv_path)
