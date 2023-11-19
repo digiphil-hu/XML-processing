@@ -37,7 +37,7 @@ def parse_xml(xml_path):
     """
     with open(xml_path, 'r', encoding='utf-8') as file:
         xml_content = file.read()
-    print(xml_path)
+    # print(xml_path)
     soup = BeautifulSoup(xml_content, 'xml')
     return soup
 
@@ -64,7 +64,9 @@ def create_dictionary(f_path):
                 for idno_tag in parsed_xml.find_all('idno', {'type': 'KOHA_AUTH'}):
                     if idno_tag.text != "":
                         koha_id = (idno_tag.text.replace("KOHA_AUTH:", "")
-                                   .replace("KOHA:", "").strip())
+                                   .replace("KOHA:", "").replace("null:", "").strip())
+                        # if not re.fullmatch(r'\d+', koha_id):
+                        #    print(filename, "'", koha_id, "'", idno_tag)
                         corresp_name = idno_tag.get('corresp')
                         if corresp_name:
                             koha_id_dict[koha_id].add(corresp_name.strip())
