@@ -24,6 +24,7 @@ def iterate_xml_files(f_path):
         for filename in files:
             if filename.endswith(".xml"):
                 xml_path = os.path.join(root, filename)
+                print(xml_path)
                 parse_xml(xml_path)
 
 
@@ -36,7 +37,7 @@ def parse_xml(xml_path):
     """
     with open(xml_path, 'r', encoding='utf-8') as file:
         xml_content = file.read()
-    # print(xml_path)
+    print(xml_path)
     soup = BeautifulSoup(xml_content, 'xml')
     return soup
 
@@ -50,26 +51,26 @@ def create_dictionary(f_path):
 
     koha_id_dict = defaultdict(set)
     names_without_koha_id = set()
+    for root, dirs, files in os.walk(f_path):
+        for filename in files:
+            if filename.endswith(".xml"):
+                xml_path = os.path.join(root, filename)
+                parsed_xml = parse_xml(xml_path)
 
-    for filename in os.listdir(f_path):
-        if filename.endswith(".xml"):
-            xml_path = os.path.join(f_path, filename)
-            parsed_xml = parse_xml(xml_path)
+                for idno_tag in parsed_xml.find_all('idno', {'type': 'KOHA_AUTH'}):
+                    if idno_tag.text != "":
+                        koha_id = idno_tag.text.replace("KOHA_AUTH:", "").replace("KOHA:", "")
+                        corresp_name = idno_tag.get('corresp')
+                        if corresp_name:
+                            koha_id_dict[koha_id].add(corresp_name.strip())
+                        else:
+                            koha_id_dict[koha_id].add("")
+                    else:
+                        corresp_name = idno_tag.get('corresp')
+                        if corresp_name:
+                            names_without_koha_id.add(corresp_name.strip())
 
-        for idno_tag in parsed_xml.find_all('idno', {'type': 'KOHA_AUTH'}):
-            if idno_tag.text != "":
-                koha_id = idno_tag.text.replace("KOHA_AUTH:", "").replace("KOHA:", "")
-                corresp_name = idno_tag.get('corresp')
-                if corresp_name:
-                    koha_id_dict[koha_id].add(corresp_name.strip())
-                else:
-                    koha_id_dict[koha_id].add("")
-            else:
-                corresp_name = idno_tag.get('corresp')
-                if corresp_name:
-                    names_without_koha_id.add(corresp_name.strip())
-
-    write_to_tsv(koha_id_dict, names_without_koha_id)
+            write_to_tsv(koha_id_dict, names_without_koha_id)
 
 
 def write_to_tsv(koha_dict, names_set):
@@ -90,7 +91,7 @@ def write_to_tsv(koha_dict, names_set):
             tsv_file.write(i + '\n')
 
 
-folder_path = '/home/eltedh/PycharmProjects/DATA/'
+folder_path = '/home/eltedh/PycharmProjects/DATA/migration/'
 create_dictionary(folder_path)
 
 
