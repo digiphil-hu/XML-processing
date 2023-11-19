@@ -15,10 +15,16 @@ def iterate_xml_files(f_path):
     Parameters:
     - folder_path (str): Path of the folder containing XML files.
     """
-    for filename in os.listdir(f_path):
-        if filename.endswith(".xml"):
-            xml_path = os.path.join(f_path, filename)
-            parse_xml(xml_path)
+    # for filename in os.listdir(f_path):
+    #     if filename.endswith(".xml"):
+    #         xml_path = os.path.join(f_path, filename)
+    #         parse_xml(xml_path)
+
+    for root, dirs, files in os.walk(f_path):
+        for filename in files:
+            if filename.endswith(".xml"):
+                xml_path = os.path.join(root, filename)
+                parse_xml(xml_path)
 
 
 def parse_xml(xml_path):
@@ -84,7 +90,7 @@ def write_to_tsv(koha_dict, names_set):
             tsv_file.write(i + '\n')
 
 
-folder_path = '/home/eltedh/PycharmProjects/DATA/Arany XML/a_tei xml_final'
+folder_path = '/home/eltedh/PycharmProjects/DATA/'
 create_dictionary(folder_path)
 
 

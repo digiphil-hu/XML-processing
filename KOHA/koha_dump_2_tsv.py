@@ -1,4 +1,14 @@
 from bs4 import BeautifulSoup
+import re
+
+
+def normalize(string):
+    string = string.strip()
+    string = string.replace('\t', '')
+    string = string.replace('\n', '')
+    string = re.sub(r'\s+', ' ', string)
+    return string
+
 
 def extract_field_value(soup, tag, subfield_code, tag_value):
     """
@@ -6,13 +16,13 @@ def extract_field_value(soup, tag, subfield_code, tag_value):
     """
     field = "Unknown"
     if tag == "controlfield":
-        field = soup.find(tag, {'tag': tag_value}).text.strip().replace('  ', '')
+        field = soup.find(tag, {'tag': tag_value}).text
     else:
         if (soup.find(tag, {'tag': tag_value})
-                and soup.find(tag, {'tag': tag_value}).find('subfield', {'code': subfield_code})):
-            field = soup.find(tag, {'tag': tag_value}).find('subfield', {'code': subfield_code}).text.strip()
+                          and soup.find(tag, {'tag': tag_value}).find('subfield', {'code': subfield_code})):
+            field = soup.find(tag, {'tag': tag_value}).find('subfield', {'code': subfield_code}).text
 
-    return field
+    return normalize(field)
 
 
 def parse_large_txt_file(input_file_path, output_tsv_path):
@@ -29,9 +39,10 @@ def parse_large_txt_file(input_file_path, output_tsv_path):
         {'tag': 'datafield', 'subfield_code': 'a', 'tag_value': '906'}
     ]
 
-    with open(output_tsv_path, 'w', encoding='utf-8') as tsv_file:
+    with (open(output_tsv_path, 'w', encoding='utf-8') as tsv_file):
         # Write header to the TSV file
-        header = '\t'.join([f"{field['tag']}_{field['tag_value']}{field['subfield_code']}" for field in datafields]) + '\n'
+        header = '\t'.join(
+            [f"{field['tag']}_{field['tag_value']}{field['subfield_code']}" for field in datafields]) + '\n'
         tsv_file.write(header)
 
         with open(input_file_path, 'r', encoding='utf-8') as file:
