@@ -62,7 +62,7 @@ def parse_large_txt_file(input_file_path, output_tsv_path):
 
 
 # Example usage
-input_file_path = '/home/eltedh/PycharmProjects/DATA/KOHA/koha_auth_part.txt'
+input_file_path = '/home/eltedh/PycharmProjects/DATA/KOHA/auths.txt'
 output_tsv_path = 'koha_pim.tsv'
 
 parse_large_txt_file(input_file_path, output_tsv_path)
