@@ -179,10 +179,26 @@ def write_to_csv(data_dict):
     - data_dict (dict): Dictionary containing values.
     """
     with open('output.tsv', 'a', encoding='utf-8') as tsv_file:
-        tsv_file.write(','.join([str(value) for value in data_dict.values()]) + '\n')
+        tsv_file.write('\t'.join([str(value) for value in data_dict.values()]) + '\n')
 
 
 # Example usage:
 folder_path = '/home/eltedh/PycharmProjects/DATA/Arany XML/a_tei xml_final'
 with open('output.tsv', "w", encoding="utf8") as f:
+    # write header:
+    header_list = ["qid",
+                   "Lhu",
+                   "Len",
+                   "Dhu",
+                   "Den",
+                   "P1",
+                   "P7",
+                   "P80",
+                   "P41",
+                   "P44",
+                   "P49",
+                   "P106",
+                   "P18",
+                   "P57"]
+    f.write("\t".join(header_list) + "\n\t")
     iterate_xml_files(folder_path)
