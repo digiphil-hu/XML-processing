@@ -37,9 +37,9 @@ def process_tsv(tsv_filename_in, tsv_filename_out, id_dict):
         tsvwriter = csv.writer(outfile, delimiter='\t')
 
         # Process header
-        header = next(tsvreader)
-        new_header = ['ID'] + header  # Add 'ID' as the first column in the header
-        tsvwriter.writerow(new_header)
+        # header = next(tsvreader)
+        # new_header = ['ID'] + header  # Add 'ID' as the first column in the header
+        # tsvwriter.writerow(new_header)
 
         # Process each line in the input TSV file
         for row in tsvreader:
