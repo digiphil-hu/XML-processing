@@ -68,11 +68,11 @@ def create_koha_id_tsv(f_path_list, out_path):
                                 names_without_koha_id.add(corresp_name)
 
                     # Extracting VIAF authorities
-                    for idno_tag in parsed_xml.find_all('idno', {'type': 'VIAF_AUTH'}):
+                    for idno_tag in parsed_xml.find_all('idno', {'type': 'VIAF'}):
                         if idno_tag.text != "":
                             viaf_id = (idno_tag.text.replace("VIAF_AUTH:", "")
                                        .replace("VIAF:", "").strip())
-                            corresp_name = idno_tag.get('corresp').strip()
+                            corresp_name = idno_tag.get('corresp')
                             if corresp_name:
                                 viaf_id_dict[viaf_id].add(corresp_name.strip())
                             else:
@@ -119,5 +119,16 @@ def write_to_tsv(out_path, koha_dict, koha_names_set, viaf_dict, viaf_names_set)
 
 
 def sort_dict(input_dict):
-    out_dict = dict(sorted(input_dict.items(), key=lambda x: x[1]))
+    key_list = []
+    out_dict = dict()
+    for key in input_dict.keys():
+        if key == "":
+            key = 0
+        key = int(key)
+        key_list.append(key)
+    sorted_list = sorted(key_list)
+    for key in sorted_list:
+        key = str(key)
+        out_dict[key] = input_dict[key]
+
     return out_dict
