@@ -43,44 +43,46 @@ def create_koha_id_tsv(f_path_list, out_path):
 
                     # Extracting KOHA authorities
                     for idno_tag in parsed_xml.find_all('idno', {'type': 'KOHA_AUTH'}):
-                        if idno_tag.string:
-                            corresp_name = idno_tag.get('corresp')
-                            koha_id = idno_tag.string
-                            koha_id = re.sub(r'[^0-9]', '', koha_id)
+                        if idno_tag.parent.name != "placeName":
+                            if idno_tag.string:
+                                corresp_name = idno_tag.get('corresp')
+                                koha_id = idno_tag.string
+                                koha_id = re.sub(r'[^0-9]', '', koha_id)
 
-                            # koha_id = idno_tag.string.replace("\n", "").replace("\t", "")
-                            # koha_id = koha_id.replace("KOHA_AUTH:", "").replace("KOHA:", "")
-                            # if not re.fullmatch(r'\d*', koha_id):
-                            #     print(filename, "'", koha_id, "'", idno_tag)
+                                # koha_id = idno_tag.string.replace("\n", "").replace("\t", "")
+                                # koha_id = koha_id.replace("KOHA_AUTH:", "").replace("KOHA:", "")
+                                # if not re.fullmatch(r'\d*', koha_id):
+                                #     print(filename, "'", koha_id, "'", idno_tag)
 
-                            if corresp_name and koha_id == "":
-                                corresp_name = corresp_name.replace("\n", "").replace("\t", "").strip()
-                                names_without_koha_id.add(corresp_name)
-                            if corresp_name and koha_id != "":
-                                corresp_name = corresp_name.replace("\n", "").replace("\t", "").strip()
-                                koha_id_dict[koha_id].add(corresp_name)
+                                if corresp_name and koha_id == "":
+                                    corresp_name = corresp_name.replace("\n", "").replace("\t", "").strip()
+                                    names_without_koha_id.add(corresp_name)
+                                if corresp_name and koha_id != "":
+                                    corresp_name = corresp_name.replace("\n", "").replace("\t", "").strip()
+                                    koha_id_dict[koha_id].add(corresp_name)
+                                else:
+                                    koha_id_dict[koha_id].add("")
                             else:
-                                koha_id_dict[koha_id].add("")
-                        else:
-                            corresp_name = idno_tag.get('corresp')
-                            if corresp_name:
-                                corresp_name = corresp_name.replace("\n", "").replace("\t", "").strip()
-                                names_without_koha_id.add(corresp_name)
+                                corresp_name = idno_tag.get('corresp')
+                                if corresp_name:
+                                    corresp_name = corresp_name.replace("\n", "").replace("\t", "").strip()
+                                    names_without_koha_id.add(corresp_name)
 
                     # Extracting VIAF authorities
-                    for idno_tag in parsed_xml.find_all('idno', {'type': 'VIAF'}):
-                        if idno_tag.text != "":
-                            viaf_id = (idno_tag.text.replace("VIAF_AUTH:", "")
-                                       .replace("VIAF:", "").strip())
-                            corresp_name = idno_tag.get('corresp')
-                            if corresp_name:
-                                viaf_id_dict[viaf_id].add(corresp_name.strip())
+                    for idno_tag in parsed_xml.persName.find_all('idno', {'type': 'VIAF'}):
+                        if idno_tag.parent.name != "placeName":
+                            if idno_tag.text != "":
+                                viaf_id = (idno_tag.text.replace("VIAF_AUTH:", "")
+                                           .replace("VIAF:", "").strip())
+                                corresp_name = idno_tag.get('corresp')
+                                if corresp_name:
+                                    viaf_id_dict[viaf_id].add(corresp_name.strip())
+                                else:
+                                    viaf_id_dict[koha_id].add("")
                             else:
-                                viaf_id_dict[koha_id].add("")
-                        else:
-                            corresp_name = idno_tag.get('corresp')
-                            if corresp_name:
-                                names_without_viaf_id.add(corresp_name.strip())
+                                corresp_name = idno_tag.get('corresp')
+                                if corresp_name:
+                                    names_without_viaf_id.add(corresp_name.strip())
 
                 write_to_tsv(out_path, koha_id_dict, names_without_koha_id, viaf_id_dict, names_without_viaf_id)
     if koha_id != "":
