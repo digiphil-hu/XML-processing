@@ -1,5 +1,8 @@
 import csv
+import time
+
 import requests
+from api_request import get_person_info_from_wikidata
 
 
 def get_sparql_query(tsv_value):
@@ -11,15 +14,37 @@ def get_sparql_query(tsv_value):
           ?item p:P100 ?statement0.
           ?statement0 (ps:P100) "{tsv_value}".
         }}
-        LIMIT 100
+        LIMIT 10
       }}
     }}
     """
 
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
 
-def send_sparql_query(endpoint, query):
-    response = requests.post(endpoint, data={'query': query, 'format': 'json'})
-    return response
+
+def send_sparql_query_with_retry(endpoint, query):
+    session = requests.Session()
+    retry_strategy = Retry(
+        total=10,
+        backoff_factor=2,
+        status_forcelist=[500, 502, 503, 504],
+    )
+    adapter = HTTPAdapter(max_retries=retry_strategy)
+    session.mount("http://", adapter)
+    session.mount("https://", adapter)
+
+    try:
+        response = session.post(endpoint, data={'query': query, 'format': 'json'})
+        response.raise_for_status()
+        return response
+    except requests.exceptions.RequestException as e:
+        print(f"Error: {e}")
+        return requests.Response()  # Return an empty response object
+
+# def send_sparql_query(endpoint, query):
+#     response = requests.post(endpoint, data={'query': query, 'format': 'json'})
+#     return response
 
 
 def process_results(response):
@@ -33,20 +58,9 @@ def process_results(response):
         return f"Error: {response.status_code}, {response.text}"
 
 
-def create_and_write_tsv(q_ids, output_file_path):
-    with open(output_file_path, 'w', newline='', encoding='utf-8') as tsvfile:
-        tsvwriter = csv.writer(tsvfile, delimiter='\t')
-        for q_id in q_ids:
-            tsvwriter.writerow([q_id])
-
-
-def main():
+def itidata_query(tsv_file_path_in, tsv_file_path_out):
     # SPARQL endpoint URL
     sparql_endpoint = "https://query.itidata.abtk.hu/proxy/wdqs/bigdata/namespace/wdq/sparql"
-
-    # Input, output TSV file path
-    tsv_file_path_in = "/home/eltedh/PycharmProjects/XML-processing/KOHA/KOHA_output_data/koha_pim_biblio.tsv"
-    tsv_file_path_out = "/home/eltedh/PycharmProjects/XML-processing/KOHA/KOHA_output_data/itidata_koha_pim_biblio.tsv"
 
     # Open input and create output TSV files:
     with (open(tsv_file_path_in, 'r', newline='', encoding='utf-8') as tsvfile_in,
@@ -54,8 +68,10 @@ def main():
 
         tsvreader = csv.reader(tsvfile_in, delimiter='\t')
         tsvwriter = csv.writer(tsvfile_out, delimiter='\t')
+        result_list = []
 
         for row in tsvreader:
+            time.sleep(1)
             if row and row[3].isdigit():  # Check if the row is not empty and if the 4th cell contains numbers only.
 
                 # Get the value from the 4th column
@@ -66,17 +82,22 @@ def main():
                 sparql_query = get_sparql_query(pim_id_tsv_value)
 
                 # Send the SPARQL query to the endpoint
-                response = send_sparql_query(sparql_endpoint, sparql_query)
+                response = send_sparql_query_with_retry(sparql_endpoint, sparql_query)
 
                 # Process the results and add to the list
-                result = process_results(response)
+                result = process_results(response).replace("https://itidata.abtk.hu/entity/", "")
+                result_list.append((pim_id_tsv_value, result))
+
+                # Get name and dates
+                name_and_dates = get_person_info_from_wikidata(result)
+
+                # Write new line to the output TSV
+                new_row = [f"PIM{row[3]}", f"{result}", f"{name_and_dates}"] + row
+                tsvwriter.writerow(new_row)
 
                 # Print result
-                # print(result)
+                print(result)
 
-    # Create a new TSV file with Q IDs
-    create_and_write_tsv(results_list, "output_file.tsv")
-
-
-if __name__ == "__main__":
-    main()
+            else:
+                new_row = [f"{row[3]}", f"Unknown"] + row
+                tsvwriter.writerow(new_row)
