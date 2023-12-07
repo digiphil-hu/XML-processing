@@ -16,7 +16,10 @@ output_path = "/home/eltedh/PycharmProjects/XML-processing/KOHA/KOHA_output_data
 create_koha_id_tsv(github_folder_list, output_path)
 
 # 2: Looking up KOHA ID's in a TSV (koha_pim.tsv) created from the KOHA dump (auths.txt) by koha_dump_2_tsc.py
-
+# Output:KOHA/KOHA_output_data/koha_pim_biblio.tsv
 koha_pim_biblio("/home/eltedh/PycharmProjects/XML-processing/KOHA/KOHA_output_data/koha_id_list.tsv",
                 "/home/eltedh/PycharmProjects/XML-processing/KOHA/koha_pim.tsv",
                 "/home/eltedh/PycharmProjects/XML-processing/KOHA/KOHA_output_data/koha_pim_biblio.tsv")
+
+# 3: Run a query to find ITIdata item id-s based on the PIM id-s. PIM ID-s are taken form KOHA koha_pim_biblio.tsv
+

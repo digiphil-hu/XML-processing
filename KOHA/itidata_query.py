@@ -44,32 +44,35 @@ def main():
     # SPARQL endpoint URL
     sparql_endpoint = "https://query.itidata.abtk.hu/proxy/wdqs/bigdata/namespace/wdq/sparql"
 
-    # TSV file path
-    tsv_file_path = "koha_id_list.tsv"  # Replace with the path to your TSV file
+    # Input, output TSV file path
+    tsv_file_path_in = "/home/eltedh/PycharmProjects/XML-processing/KOHA/KOHA_output_data/koha_pim_biblio.tsv"
+    tsv_file_path_out = "/home/eltedh/PycharmProjects/XML-processing/KOHA/KOHA_output_data/itidata_koha_pim_biblio.tsv"
 
-    # List to store results
-    results_list = []
+    # Open input and create output TSV files:
+    with (open(tsv_file_path_in, 'r', newline='', encoding='utf-8') as tsvfile_in,
+          open(tsv_file_path_out, 'w', newline='', encoding='utf-8') as tsvfile_out):
 
-    # Read values from the first column of the TSV file
-    with open(tsv_file_path, 'r', newline='', encoding='utf-8') as tsvfile:
-        tsvreader = csv.reader(tsvfile, delimiter='\t')
+        tsvreader = csv.reader(tsvfile_in, delimiter='\t')
+        tsvwriter = csv.writer(tsvfile_out, delimiter='\t')
+
         for row in tsvreader:
-            if row:  # Check if the row is not empty
-                # Get the value from the first column
-                tsv_value = "PIM" + row[0]
+            if row and row[3].isdigit():  # Check if the row is not empty and if the 4th cell contains numbers only.
+
+                # Get the value from the 4th column
+                pim_id_tsv_value = "PIM" + row[3]
+                print(pim_id_tsv_value)
 
                 # Get SPARQL query
-                sparql_query = get_sparql_query(tsv_value)
+                sparql_query = get_sparql_query(pim_id_tsv_value)
 
                 # Send the SPARQL query to the endpoint
                 response = send_sparql_query(sparql_endpoint, sparql_query)
 
                 # Process the results and add to the list
                 result = process_results(response)
-                results_list.append(result)
 
                 # Print result
-                print(result)
+                # print(result)
 
     # Create a new TSV file with Q IDs
     create_and_write_tsv(results_list, "output_file.tsv")
