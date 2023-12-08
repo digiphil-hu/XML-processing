@@ -2,7 +2,6 @@
 # TODO:   <pubPlace>Budapest <idno type="KOHA_AUTH">KOHA_AUTH:9227</idno>
 
 
-
 from KOHA.koha_pim_biblio import koha_pim_biblio
 from koha_2_tsv import create_koha_id_tsv
 from itidata_query import itidata_query
@@ -13,13 +12,13 @@ github_folder_list = [
                     # "/home/eltedh/GitHub/migration-ajom-17",
                     # "/home/eltedh/GitHub/migration-ajom-18",
                     # "/home/eltedh/GitHub/migration-ajom-19",
-                    # "/home/eltedh/GitHub/Petofi_Sandor"
-                    "/home/eltedh/GitHub/RMKT-XVII-16/RMKT-XVII-6",
+                    "/home/eltedh/GitHub/Petofi_Sandor"
+                    # "/home/eltedh/GitHub/RMKT-XVII-16/RMKT-XVII-6",
                     # "/home/eltedh/GitHub/RMKT-XVII-16/RMKT-XVII-12",
-                    "/home/eltedh/GitHub/RMKT-XVII-16/RMKT-XVII-16"
+                    # "/home/eltedh/GitHub/RMKT-XVII-16/RMKT-XVII-16"
                     ]
 
-output_path = "/home/eltedh/PycharmProjects/XML-processing/KOHA/KOHA_output_data_RMKT/"
+output_path = "/home/eltedh/PycharmProjects/XML-processing/KOHA/KOHA_output_data_PSOM/"
 create_koha_id_tsv(github_folder_list, output_path)
 
 # 2: Looking up KOHA ID's in a TSV (koha_pim.tsv) created from the KOHA dump (auths.txt) by koha_dump_2_tsc.py
