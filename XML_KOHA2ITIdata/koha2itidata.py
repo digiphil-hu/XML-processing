@@ -18,7 +18,7 @@ def get_filenames(f_path_list):
                 if filename.endswith(".xml"):
                     xml_path = os.path.join(root, filename)
                     parsed_xml = parse_xml(xml_path)
-                    print(xml_path)
+                    # print(xml_path)
                     yield parsed_xml, xml_path
 
 
@@ -40,7 +40,10 @@ for parsed, path in get_filenames(path_list):
     for idno_tag in parsed.find_all('idno', {'type': 'KOHA_AUTH'}):
         # print(idno_tag.parent.name, idno_tag.string, idno_tag.get('corresp'))
         if idno_tag.parent.name == 'persName':
-            print(idno_tag.string, path)
+            koha_key = idno_tag.string.replace('KOHA_AUTH:', '').strip()
+            # print(idno_tag.string, path)
             idno_tag['type'] = 'ITIdata'
+            idno_tag.string = koha_dict[koha_key]
+            print(idno_tag)
 
 
