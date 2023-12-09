@@ -18,5 +18,5 @@ def idno_koha2itidata(parsed_xml, xml_path, koha_itidata_dict):
             # print(idno_tag.string, xml_path)
             idno_tag['type'] = 'ITIdata'
             idno_tag.string = koha_itidata_dict[koha_key]
-            print(idno_tag)
+            # print(idno_tag)
     return parsed_xml
