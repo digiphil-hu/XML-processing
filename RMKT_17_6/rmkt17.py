@@ -65,12 +65,22 @@ def change_header(parsed_xml, xml_path):
     # Add listWit
     if old_header.listWit:
         new_header.listWit.replace_with(old_header.listWit)
+    else:
+        new_header.listWit.extract()
 
+    # Add notes statements
+    if old_header.notesStmt:
+        new_header.notesStmt.replace_with(old_header.notesStmt)
+    else:
+        new_header.notesStmt.extract()
+        print(PID)
+
+    # Rewrite header
     parsed_xml.teiHeader.replace_with(new_header)
     return parsed_xml
 
 
-tsv_path = "/home/eltedh/PycharmProjects/XML-processing/KOHA/KOHA_output_data_RMKT/itidata_koha_pim_biblio.tsv"
+tsv_path = "/home/eltedh/PycharmProjects/XML-processing/KOHA/KOHA_output_data_RMKT/itidata_koha_pim_biblio_auth_geo.csv"
 path_list = ["/home/eltedh/GitHub/RMKT-XVII-16/RMKT-XVII-6"]
 koha_dict = tsv_to_dict(tsv_path)
 
@@ -78,11 +88,12 @@ koha_dict = tsv_to_dict(tsv_path)
 for parsed, path in get_filenames(path_list):
     if ends_with_numbers_or_f_j(path):
         change_header(parsed, path)
-        soup_new = idno_koha2itidata(parsed, path, koha_dict)
+    soup_new = idno_koha2itidata(parsed, path, koha_dict)
 
-        # Save the modified XML back to a file
-        new_filename = soup_new.find('idno', {'type': 'PID'}).string
-        print(path, new_filename)
-        new_path = "/home/eltedh/PycharmProjects/XML-processing/RMKT_17_6/XML/"
-        with open(new_path + new_filename, 'w', encoding='utf-8') as file:
-            file.write(str(soup_new))
+    # Save the modified XML back to a file
+    new_filename = soup_new.find('idno', {'type': 'PID'}).string + '.xml'
+    # print(path, new_filename)
+    new_path = "/home/eltedh/PycharmProjects/XML-processing/RMKT_17_6/XML/"
+
+    with open(new_path + new_filename, 'w', encoding='utf-8') as file:
+        file.write(str(soup_new))
