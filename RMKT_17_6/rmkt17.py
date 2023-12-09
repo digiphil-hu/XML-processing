@@ -1,0 +1,70 @@
+import os
+import re
+from bs4 import BeautifulSoup
+from koha2itidata import tsv_to_dict, idno_koha2itidata
+
+def ends_with_numbers_and_xml(filename):
+    pattern = r'\d+\.xml$'
+    return re.search(pattern, filename) is not None
+
+
+def parse_xml(xml_path):
+    with open(xml_path, 'r', encoding='utf-8') as file:
+        xml_content = file.read()
+    # print(xml_path)
+    soup = BeautifulSoup(xml_content, 'xml')
+    return soup
+
+
+def get_filenames(f_path_list):
+    for f_path in f_path_list:
+        for root, dirs, files in os.walk(f_path):
+            for filename in files:
+                if filename.endswith(".xml"):
+                    xml_path = os.path.join(root, filename)
+                    parsed_xml = parse_xml(xml_path)
+                    # print(xml_path)
+                    yield parsed_xml, xml_path
+
+
+
+def change_header(parsed_xml):
+    new_header = parse_xml('/home/eltedh/PycharmProjects/XML-processing/RMKT_17_6/perfect-rmkt-17-6-header.xml')
+    old_header = parsed_xml.teiHeader
+
+    # Replace num title
+    old_num = old_header.titleStmt.find('title', {'type': 'num'})
+    new_num = new_header.titleStmt.find('title', {'type': 'num'})
+    verse_num = old_num.string.replace('.', '')
+    if verse_num.isnumeric() is not True:
+        print('Verse number is not a number!')
+    if old_num and new_num:
+        new_num.string = old_num.string
+
+    # Replace main title
+    old_main = old_header.titleStmt.find('title', {'type': 'main'})
+    new_main = new_header.titleStmt.find('title', {'type': 'main'})
+    if old_main and new_main:
+        new_main.string = old_main.string
+
+
+    parsed_xml.teiHeader.replace_with(new_header)
+    return parsed_xml
+
+
+tsv_path = "/home/eltedh/PycharmProjects/XML-processing/KOHA/KOHA_output_data_RMKT/itidata_koha_pim_biblio.tsv"
+path_list = ["/home/eltedh/GitHub/RMKT-XVII-16/RMKT-XVII-6"]
+koha_dict = tsv_to_dict(tsv_path)
+
+
+
+for parsed, path in get_filenames(path_list):
+    if ends_with_numbers_and_xml(path):
+        change_header(parsed)
+    # soup_new = idno_koha2itidata(parsed, path, koha_dict)
+
+    # Save the modified XML back to a file
+    new_path = path.replace("/home/eltedh/GitHub/RMKT-XVII-16/RMKT-XVII-6/",
+                            "/home/eltedh/PycharmProjects/XML-processing/RMKT_17_6/XML/")
+    with open(new_path, 'w', encoding='utf-8') as file:
+        file.write(str(soup_new))
