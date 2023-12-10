@@ -51,7 +51,10 @@ def write_dict_to_tsv(input_dict, output_file):
         if write_header or not existing_header:
             writer.writerow(input_dict.keys())
 
-        # Write a single row based on dictionary values
+        # Write a single row based on dictionary values.
+        # Linebreaks stripped from cell endings.
+        for key, value in input_dict.items():
+            input_dict[key] = value.strip()
         writer.writerow(input_dict.values())
 
 
@@ -125,7 +128,8 @@ def tsv_from_xml(parsed_xml, xml_path):
     related_lines = ""
     github_file_link = parsed_xml.publicationStmt.find('ref', {'target': True})['target']
     DOI = parsed_xml.find('idno', {'type': 'DOI'}).text.strip()
-    idno_itidata = parsed_xml.find('sourceDesc').find('bibl').find('idno', {'type': 'ITIdata'}).text.strip()
+    idno = parsed_xml.sourceDesc.bibl.find('idno', {'type': 'ITIdata'}, recursive=False)
+    idno_itidata = ("https://itidata.abtk.hu/wiki/item:" + idno.text)
     related_works = (["Is part of", DOI, "DOI", "Dataset"],
                      ["Has version", github_file_link, "URL", "Dataset"],
                      ["Is described by", "https://digiphil.hu/gallery/regi-magyar-koltok-tara-17-szazad/", "URL",
