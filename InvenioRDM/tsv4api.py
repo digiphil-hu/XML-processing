@@ -125,11 +125,12 @@ def tsv_from_xml(parsed_xml, xml_path):
     related_lines = ""
     github_file_link = parsed_xml.publicationStmt.find('ref', {'target': True})['target']
     DOI = parsed_xml.find('idno', {'type': 'DOI'}).text.strip()
+    idno_itidata = parsed_xml.find('sourceDisc').find('bibl').find('idno', {'type': 'ITIdata'}).text.strip()
     related_works = (["Is part of", DOI, "DOI", "Dataset"],
                      ["Has version", github_file_link, "URL", "Dataset"],
                      ["Is described by", "https://digiphil.hu/gallery/regi-magyar-koltok-tara-17-szazad/", "URL",
                       "Publication / Other"],
-                     ["Is described by", "https://itidata.abtk.hu/"]
+                     ["Is described by", idno_itidata, "URL", "Dataset"]
                      )
     for related_work in related_works:
         related_lines += ("Relation:" + related_work[0] + "|" +
