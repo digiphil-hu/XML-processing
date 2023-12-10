@@ -60,7 +60,7 @@ def tsv_from_xml(parsed_xml, xml_path):
 
     # PID
     PID = parsed_xml.find('idno', {'type': 'PID'}).text.strip()
-    tsv_dict['PID'] = PID
+    tsv_dict['filename'] = PID + ".xml"
 
     # Main title
     tsv_dict['title'] = normalize(parsed_xml.find('title', {'type': 'main'}).text)
@@ -97,7 +97,7 @@ def tsv_from_xml(parsed_xml, xml_path):
                                    'Family_name:' + name_tag.surname.text.strip() + '|' +
                                    'Given_name:' + name_tag.forename.text.strip() +
                                    orc_id + '|' +
-                                   'Role:Editor') + '\n'
+                                   'Role:Other') + '\n'
             tsv_dict['Contributors'] = contributor_string
 
     # Subjects
@@ -125,7 +125,7 @@ def tsv_from_xml(parsed_xml, xml_path):
     related_lines = ""
     github_file_link = parsed_xml.publicationStmt.find('ref', {'target': True})['target']
     DOI = parsed_xml.find('idno', {'type': 'DOI'}).text.strip()
-    idno_itidata = parsed_xml.find('sourceDisc').find('bibl').find('idno', {'type': 'ITIdata'}).text.strip()
+    idno_itidata = parsed_xml.find('sourceDesc').find('bibl').find('idno', {'type': 'ITIdata'}).text.strip()
     related_works = (["Is part of", DOI, "DOI", "Dataset"],
                      ["Has version", github_file_link, "URL", "Dataset"],
                      ["Is described by", "https://digiphil.hu/gallery/regi-magyar-koltok-tara-17-szazad/", "URL",
