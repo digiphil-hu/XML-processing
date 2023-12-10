@@ -59,7 +59,8 @@ def tsv_from_xml(parsed_xml, xml_path):
     tsv_dict = {}
 
     # PID
-    tsv_dict['PID'] = parsed_xml.find('idno', {'type': 'PID'}).text
+    PID = parsed_xml.find('idno', {'type': 'PID'}).text.strip()
+    tsv_dict['PID'] = PID
 
     # Main title
     tsv_dict['title'] = normalize(parsed_xml.find('title', {'type': 'main'}).text)
@@ -69,35 +70,74 @@ def tsv_from_xml(parsed_xml, xml_path):
     tsv_dict['Resource type'] = 'Dataset'
 
     # Creators
+    creator_string = ""
     for num, name_tag in enumerate(parsed_xml.find_all('respStmt')):
         if name_tag.persName:
             orc_id = ""
             if name_tag.find('idno', {'type': 'ORCID'}):
                 orc_id = '|Name_identifiers:ORCID:' + name_tag.find('idno', {'type': 'ORCID'}).text
-            creator_string = ('Person|' +
-                              'Family_name:' + name_tag.surname.text.strip() + '|' +
-                              'Given_name:' + name_tag.forename.text.strip() +
-                              orc_id + '|' +
-                              'Role:Editor')
-            tsv_dict['creator' + str(num)] = creator_string
+            creator_string += ('Person|' +
+                               'Family_name:' + name_tag.surname.text.strip() + '|' +
+                               'Given_name:' + name_tag.forename.text.strip() +
+                               orc_id + '|' +
+                               'Role:Editor' + '\n')
+        tsv_dict['Creators'] = creator_string
 
     # Licences
     tsv_dict['Licenses'] = 'Creative Commons Attribution Non Commercial No Derivatives 4.0 International'
 
     # Contributors
+    contributor_string = ""
     for num, name_tag in enumerate(parsed_xml.titleStmt.find_all('author')):
         if name_tag.persName:
             orc_id = ""
             if name_tag.find('idno', {'type': 'ORCID'}):
                 orc_id = '|Name_identifiers:ORCID:' + name_tag.find('idno', {'type': 'ORCID'}).text
-            contributor_string = ('Person|' +
-                                  'Family_name:' + name_tag.surname.text.strip() + '|' +
-                                  'Given_name:' + name_tag.forename.text.strip() +
-                                  orc_id + '|' +
-                                  'Role:Editor')
-            tsv_dict['contributor' + str(num)] = contributor_string
+            contributor_string += ('Person|' +
+                                   'Family_name:' + name_tag.surname.text.strip() + '|' +
+                                   'Given_name:' + name_tag.forename.text.strip() +
+                                   orc_id + '|' +
+                                   'Role:Editor') + '\n'
+            tsv_dict['Contributors'] = contributor_string
 
-    # print(tsv_dict['title'])
+    # Subjects
+    tsv_dict['Subjects'] = ("Languages and literature" + "|" +
+                            "Digital Scholarly Edition" + "|" +
+                            "Hungarian poetry" + "|" +
+                            "XVII. Century")
+
+    # Languages
+    tsv_dict['Languages'] = ("Hungarian" + "|" + "Latin")
+
+    # Dates
+    tsv_dict['Dates'] = ("Date:1971" + "|" + "Type:Issued" + "|" + "Description:Publication of the print version")
+
+    # Version
+    tsv_dict['Version'] = "1.0"
+
+    # Publisher
+    tsv_dict['Publisher'] = "DigiPhil"
+
+    # Alternate identifiers
+    tsv_dict['Alternate Identifiers'] = ("Identifer:" + "20.500.14368/" + PID + "|" + "Scheme:" + "Handle")
+
+    # Related works
+    related_lines = ""
+    github_file_link = parsed_xml.publicationStmt.find('ref', {'target': True})['target']
+    DOI = parsed_xml.find('idno', {'type': 'DOI'}).text.strip()
+    related_works = (["Is part of", DOI, "DOI", "Dataset"],
+                     ["Has version", github_file_link, "URL", "Dataset"],
+                     ["Is described by", "https://digiphil.hu/gallery/regi-magyar-koltok-tara-17-szazad/", "URL",
+                      "Publication / Other"],
+                     ["Is described by", "https://itidata.abtk.hu/"]
+                     )
+    for related_work in related_works:
+        related_lines += ("Relation:" + related_work[0] + "|" +
+                          "Identifier:" + related_work[1] + "|" +
+                          "Scheme:" + related_work[2] + "|" +
+                          "Resource type:" + related_work[3] + "\n")
+    tsv_dict['Related works'] = related_lines
+
     return tsv_dict
 
 
