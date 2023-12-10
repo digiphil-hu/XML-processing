@@ -73,7 +73,6 @@ def change_header(parsed_xml, xml_path):
         new_header.notesStmt.replace_with(old_header.notesStmt)
     else:
         new_header.notesStmt.extract()
-        print(PID)
 
     # Rewrite header
     parsed_xml.teiHeader.replace_with(new_header)
