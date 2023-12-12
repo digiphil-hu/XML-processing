@@ -7,7 +7,7 @@
     "enabled": true
   },
   "metadata": {
-     "contributors": [
+    "contributors": [
       {
         "person_or_org": {
           "family_name": "Szenci Moln\u00e1r",
@@ -125,7 +125,7 @@
     ],
     "description": "<p>Régi Magyar Költők Tára, 17. század, 6.</p>",
     "identifiers": [{
-      "identifier": "20.500.14368/rmkt-17-6.tei.19",
+      "identifier": "20.500.14368/PID",
       "scheme": "handle"
     }],
     "languages": [
@@ -142,12 +142,15 @@
         }
       }
     ],
-    "publication_date": "2019-11-01",
+    "publication_date": "2023-12-12",
     "publisher": "DigiPhil",
-    "resource_type": {
-      "id": "dataset"
+     "resource_type": {
+      "id": "dataset",
+      "title": {
+        "en": "Dataset"
+      }
     },
-        "related_identifiers": [
+     "related_identifiers": [
       {
         "identifier": "10.5281/zenodo.10302298",
         "relation_type": {
@@ -165,7 +168,7 @@
         "scheme": "doi"
       },
       {
-        "identifier": "https://github.com/digiphil-hu/RMKT-XVII-16/blob/main/RMKT-XVII-6/RMKT-XVII-6-19.xml",
+        "identifier": "https://github.com/digiphil-hu/",
         "relation_type": {
           "id": "hasversion",
           "title": {
@@ -213,12 +216,6 @@
         "scheme": "url"
       }
     ],
-    "resource_type": {
-      "id": "dataset",
-      "title": {
-        "en": "Dataset"
-      }
-    },
     "rights": [{
         "id": "cc-by-nc-nd-4.0"
       }
