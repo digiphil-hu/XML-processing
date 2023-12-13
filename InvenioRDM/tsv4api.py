@@ -56,7 +56,7 @@ def write_dict_to_tsv(input_dict, output_file):
         for key, value in input_dict.items():
             if isinstance(value, str):
                 input_dict[key] = value.strip()
-            elif isinstance(value, list):
+            elif isinstance(value, list) and len(value) > 0:
                 if isinstance(value[0], str):
                     input_dict[key] = ';'.join(value)
                 elif isinstance(value[0], list):
@@ -82,13 +82,13 @@ def tsv_from_xml(parsed_xml, xml_path):
     creators_list = []
     for num, name_tag in enumerate(parsed_xml.find_all('respStmt')):
         if name_tag.persName:
+            creator_list = [name_tag.surname.text.strip(), name_tag.forename.text.strip(), "Editor"]
             orc_id, isni_id = ("", "")
             if name_tag.find('idno', {'type': 'ORCID'}):
                 orc_id = "ORCID:" + name_tag.find('idno', {'type': 'ORCID'}).text
             # TODO: ISNI id-s to XML!
             if name_tag.find('idno', {'type': 'ISNI'}):
                 isni_id = ("ISNI:" + name_tag.find('idno', {'type': 'ISNI'}).text)
-            creator_list = [name_tag.surname.text.strip(), name_tag.forename.text.strip(), "Editor"]
             if orc_id != "":
                 creator_list.append(orc_id)
             if isni_id != "":
@@ -97,33 +97,41 @@ def tsv_from_xml(parsed_xml, xml_path):
     tsv_dict['Creators'] = creators_list
 
     # Licences
-    tsv_dict['Licenses'] = 'Creative Commons Attribution Non Commercial No Derivatives 4.0 International'
+    tsv_dict['Licenses'] = 'cc-by-nc-nd-4.0'
 
-    # # Contributors
-    # contributor_string = ""
-    # for num, name_tag in enumerate(parsed_xml.titleStmt.find_all('author')):
-    #     if name_tag.persName:
-    #         orc_id = ""
-    #         if name_tag.find('idno', {'type': 'ORCID'}):
-    #             orc_id = '|Name_identifiers:ORCID:' + name_tag.find('idno', {'type': 'ORCID'}).text
-    #         contributor_string += ('Person|' +
-    #                                'Family_name:' + name_tag.surname.text.strip() + '|' +
-    #                                'Given_name:' + name_tag.forename.text.strip() +
-    #                                orc_id + '|' +
-    #                                'Role:Other') + '\n'
-    #         tsv_dict['Contributors'] = contributor_string
+    # Contributors
+    contributors_list = []
+    for num, name_tag in enumerate(parsed_xml.titleStmt.find_all('author')):
+        if name_tag.persName:
+            if name_tag.surname:
+                contributor_list = [name_tag.surname.text.strip(), name_tag.forename.text.strip(), "Other"]
+            else:
+                contributor_list = [name_tag.persName.text.strip(), "", "Other"]
+            orc_id, isni_id = ("", "")
+            if name_tag.find('idno', {'type': 'ORCID'}):
+                orc_id = "ORCID:" + name_tag.find('idno', {'type': 'ORCID'}).text
+            # TODO: ISNI id-s to XML!
+            if name_tag.find('idno', {'type': 'ISNI'}):
+                isni_id = ("ISNI:" + name_tag.find('idno', {'type': 'ISNI'}).text)
+            if orc_id != "":
+                contributor_list.append(orc_id)
+            if isni_id != "":
+                contributor_list.append(isni_id)
+            contributors_list.append(contributor_list)
+        tsv_dict['Contributors'] = contributors_list
 
     # Subjects
-    tsv_dict['Subjects'] = ("Languages and literature" + "|" +
-                            "Digital Scholarly Edition" + "|" +
-                            "Hungarian poetry" + "|" +
-                            "XVII. Century")
+    tsv_dict['Subjects'] = ["Languages and literature",
+                            "Digital Scholarly Edition",
+                            "Hungarian poetry",
+                            "XVII. Century"]
 
     # Languages
-    tsv_dict['Languages'] = ("Hungarian" + "|" + "Latin")
+    language_list = get_languages(parsed_xml)
+    tsv_dict['Languages'] = language_list
 
     # Dates
-    tsv_dict['Dates'] = ("Date:1971" + "|" + "Type:Issued" + "|" + "Description:Publication of the print version")
+    tsv_dict['Dates'] = ["1971", "Issued", "Publication of the print version"]
 
     # Version
     tsv_dict['Version'] = "1.0"
@@ -132,7 +140,7 @@ def tsv_from_xml(parsed_xml, xml_path):
     tsv_dict['Publisher'] = "DigiPhil"
 
     # Alternate identifiers
-    tsv_dict['Alternate Identifiers'] = ("Identifer:" + "20.500.14368/" + PID + "|" + "Scheme:" + "Handle")
+    tsv_dict['Alternate Identifiers'] = ["20.500.14368/", PID, "Handle"]
 
     # Related works
     related_lines = ""
@@ -154,6 +162,30 @@ def tsv_from_xml(parsed_xml, xml_path):
     tsv_dict['Related works'] = related_lines
 
     return tsv_dict
+
+
+def get_languages(parsed_xml):
+    language_codes_set = set()
+    language_list = []
+    european_languages = {
+        "hu": "Hungarian",        "en": "English",        "la": "Latin",        "fr": "French",        "de": "German",
+        "es": "Spanish",        "it": "Italian",        "pt": "Portuguese",        "nl": "Dutch",        "sv": "Swedish",
+        "fi": "Finnish",        "da": "Danish",        "no": "Norwegian",        "is": "Icelandic",        "ga": "Irish",
+        "sq": "Albanian",        "el": "Greek",        "ro": "Romanian",        "bg": "Bulgarian",        "hr": "Croatian",
+        "sl": "Slovenian",        "cs": "Czech",        "sk": "Slovak",        "pl": "Polish",        "hu": "Hungarian",
+        "et": "Estonian",        "lv": "Latvian",        "lt": "Lithuanian",        "mt": "Maltese",        "cy": "Welsh",
+        "gd": "Scottish Gaelic",
+    }
+    for tag in parsed_xml.find_all(lambda t: t.has_attr('xml:lang')):
+        lang_code = tag['xml:lang']
+        language_codes_set.add(lang_code)
+    for tag in parsed_xml.find_all('language', {'ident': True}):
+        lang_code = tag['ident']
+        language_codes_set.add(lang_code)
+    if len(language_codes_set) == 0:
+        language_codes_set.add("hu")
+    language_list = [european_languages[lan] for lan in language_codes_set]
+    return language_list
 
 
 path_list = ["/home/eltedh/GitHub/RMKT-XVII-16/modified-rmkt-17-6"]
