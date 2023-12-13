@@ -195,7 +195,6 @@ def get_languages(parsed_xml):
     if len(language_codes_set) == 0:
         language_codes_set.add("hu")
     language_list = [(lan + ":" + european_languages[lan]) for lan in language_codes_set]
-    print(language_list)
     return language_list
 
 

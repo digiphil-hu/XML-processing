@@ -13,7 +13,12 @@ def create_json_data(input_dict, output_path):
                      "dates": [],
                      "description": "",
                      "identifiers": [],
-                     "languages": []
+                     "languages": [],
+                     "publication_date": "",
+                     "resource_type": {},
+                     "related_identifiers": [],
+                     "rights": [],
+                     "subjects": []
                      },
         "pids": {}
     }
@@ -43,6 +48,22 @@ def create_json_data(input_dict, output_path):
     # Add languages
     for language in input_dict["Languages"]:
         json_data = add_language(json_data, language)
+
+    # Add publication date
+    json_data["metadata"]["publication_date"] = input_dict["publication_date"]
+
+    # Add resource type
+    resource_type = input_dict["Resource type"]
+    json_data["metadata"]["resource_type"] = {"id": resource_type.lower(), "title": {"en": resource_type}}
+
+    # Add related identifiers
+    for identifier in input_dict["Related works"]:
+        json_data = add_related_identifier(json_data, identifier)
+
+    # Add rights statements
+    json_data["metadata"]["rights"] = [{"id": input_dict["Licenses"]}]
+
+
 
     # Write json to path
     file_name = input_dict['Filename'].replace(".xml", ".json")
@@ -161,6 +182,29 @@ def add_language(existing_data, language_data):
         }
     )
 
+    return existing_data
+
+
+def add_related_identifier(existing_data, identifier):
+    # Add an identifier
+    existing_data["metadata"]["related_identifiers"].append(
+        {
+            "identifier": identifier[1],
+            "relation_type": {
+                "id": identifier[0].lower().replace(" ", ""),
+                "title": {
+                    "en": identifier[0]
+                }
+            },
+            "resource_type": {
+                "id": identifier[3].lower(),
+                "title": {
+                    "en": identifier[3]
+                }
+            },
+            "scheme": identifier[2].lower()
+        }
+    )
     return existing_data
 
 
