@@ -54,7 +54,13 @@ def write_dict_to_tsv(input_dict, output_file):
         # Write a single row based on dictionary values.
         # Linebreaks stripped from cell endings.
         for key, value in input_dict.items():
-            input_dict[key] = value.strip()
+            if isinstance(value, str):
+                input_dict[key] = value.strip()
+            elif isinstance(value, list):
+                if isinstance(value[0], str):
+                    input_dict[key] = ';'.join(value)
+                elif isinstance(value[0], list):
+                    input_dict[key] = "\n".join(";".join(inner_list) for inner_list in value)
         writer.writerow(input_dict.values())
 
 
@@ -73,35 +79,39 @@ def tsv_from_xml(parsed_xml, xml_path):
     tsv_dict['Resource type'] = 'Dataset'
 
     # Creators
-    creator_string = ""
+    creators_list = []
     for num, name_tag in enumerate(parsed_xml.find_all('respStmt')):
         if name_tag.persName:
-            orc_id = ""
+            orc_id, isni_id = ("", "")
             if name_tag.find('idno', {'type': 'ORCID'}):
-                orc_id = '|Name_identifiers:ORCID:' + name_tag.find('idno', {'type': 'ORCID'}).text
-            creator_string += ('Person|' +
-                               'Family_name:' + name_tag.surname.text.strip() + '|' +
-                               'Given_name:' + name_tag.forename.text.strip() +
-                               orc_id + '|' +
-                               'Role:Editor' + '\n')
-        tsv_dict['Creators'] = creator_string
+                orc_id = "ORCID:" + name_tag.find('idno', {'type': 'ORCID'}).text
+            # TODO: ISNI id-s to XML!
+            if name_tag.find('idno', {'type': 'ISNI'}):
+                isni_id = ("ISNI:" + name_tag.find('idno', {'type': 'ISNI'}).text)
+            creator_list = [name_tag.surname.text.strip(), name_tag.forename.text.strip(), "Editor"]
+            if orc_id != "":
+                creator_list.append(orc_id)
+            if isni_id != "":
+                creator_list.append(isni_id)
+            creators_list.append(creator_list)
+    tsv_dict['Creators'] = creators_list
 
     # Licences
     tsv_dict['Licenses'] = 'Creative Commons Attribution Non Commercial No Derivatives 4.0 International'
 
-    # Contributors
-    contributor_string = ""
-    for num, name_tag in enumerate(parsed_xml.titleStmt.find_all('author')):
-        if name_tag.persName:
-            orc_id = ""
-            if name_tag.find('idno', {'type': 'ORCID'}):
-                orc_id = '|Name_identifiers:ORCID:' + name_tag.find('idno', {'type': 'ORCID'}).text
-            contributor_string += ('Person|' +
-                                   'Family_name:' + name_tag.surname.text.strip() + '|' +
-                                   'Given_name:' + name_tag.forename.text.strip() +
-                                   orc_id + '|' +
-                                   'Role:Other') + '\n'
-            tsv_dict['Contributors'] = contributor_string
+    # # Contributors
+    # contributor_string = ""
+    # for num, name_tag in enumerate(parsed_xml.titleStmt.find_all('author')):
+    #     if name_tag.persName:
+    #         orc_id = ""
+    #         if name_tag.find('idno', {'type': 'ORCID'}):
+    #             orc_id = '|Name_identifiers:ORCID:' + name_tag.find('idno', {'type': 'ORCID'}).text
+    #         contributor_string += ('Person|' +
+    #                                'Family_name:' + name_tag.surname.text.strip() + '|' +
+    #                                'Given_name:' + name_tag.forename.text.strip() +
+    #                                orc_id + '|' +
+    #                                'Role:Other') + '\n'
+    #         tsv_dict['Contributors'] = contributor_string
 
     # Subjects
     tsv_dict['Subjects'] = ("Languages and literature" + "|" +
