@@ -1,4 +1,5 @@
 import csv
+import datetime
 import re
 from bs4 import BeautifulSoup
 import os
@@ -72,7 +73,17 @@ def tsv_from_xml(parsed_xml, xml_path):
     tsv_dict['filename'] = PID + ".xml"
 
     # Main title
-    tsv_dict['title'] = normalize(parsed_xml.find('title', {'type': 'main'}).text)
+    main_title = normalize(parsed_xml.titleStmt.find('title', {'type': 'main'}).text)
+    tsv_dict['title'] = main_title
+
+    # Description
+    series_title = []
+    for title in parsed_xml.sourceDesc.bibl.find_all('title'):
+        series_title.append(normalize(title.text.strip()))
+    desciption = ("<p>"
+                  + "<br>".join(series_title) + "<br>"
+                  + main_title + "</p")
+    tsv_dict['description'] = desciption
 
     # Fixed values
     tsv_dict['communities'] = 'critical-editions'
@@ -131,7 +142,11 @@ def tsv_from_xml(parsed_xml, xml_path):
     tsv_dict['Languages'] = language_list
 
     # Dates
-    tsv_dict['Dates'] = ["1971", "Issued", "Publication of the print version"]
+    print_edition_date = parsed_xml.sourceDesc.bibl.find('date')['when']
+    current_date = datetime.datetime.now()
+    formatted_date = current_date.strftime("%Y-%m-%d")
+    tsv_dict['publication_date'] = formatted_date
+    tsv_dict['Dates'] = [print_edition_date, "Issued", "Publication of the print version"]
 
     # Version
     tsv_dict['Version'] = "1.0"
@@ -143,23 +158,17 @@ def tsv_from_xml(parsed_xml, xml_path):
     tsv_dict['Alternate Identifiers'] = ["20.500.14368/", PID, "Handle"]
 
     # Related works
-    related_lines = ""
     github_file_link = parsed_xml.publicationStmt.find('ref', {'target': True})['target']
     DOI = parsed_xml.find('idno', {'type': 'DOI'}).text.strip()
     idno = parsed_xml.sourceDesc.bibl.find('idno', {'type': 'ITIdata'}, recursive=False)
     idno_itidata = ("https://itidata.abtk.hu/wiki/item:" + idno.text)
-    related_works = (["Is part of", DOI, "DOI", "Dataset"],
+    related_works = [["Is part of", DOI, "DOI", "Dataset"],
                      ["Has version", github_file_link, "URL", "Dataset"],
                      ["Is described by", "https://digiphil.hu/gallery/regi-magyar-koltok-tara-17-szazad/", "URL",
-                      "Publication / Other"],
+                      "Publication"],
                      ["Is described by", idno_itidata, "URL", "Dataset"]
-                     )
-    for related_work in related_works:
-        related_lines += ("Relation:" + related_work[0] + "|" +
-                          "Identifier:" + related_work[1] + "|" +
-                          "Scheme:" + related_work[2] + "|" +
-                          "Resource type:" + related_work[3] + "\n")
-    tsv_dict['Related works'] = related_lines
+                     ]
+    tsv_dict['Related works'] = related_works
 
     return tsv_dict
 
@@ -168,12 +177,12 @@ def get_languages(parsed_xml):
     language_codes_set = set()
     language_list = []
     european_languages = {
-        "hu": "Hungarian",        "en": "English",        "la": "Latin",        "fr": "French",        "de": "German",
-        "es": "Spanish",        "it": "Italian",        "pt": "Portuguese",        "nl": "Dutch",        "sv": "Swedish",
-        "fi": "Finnish",        "da": "Danish",        "no": "Norwegian",        "is": "Icelandic",        "ga": "Irish",
-        "sq": "Albanian",        "el": "Greek",        "ro": "Romanian",        "bg": "Bulgarian",        "hr": "Croatian",
-        "sl": "Slovenian",        "cs": "Czech",        "sk": "Slovak",        "pl": "Polish",        "hu": "Hungarian",
-        "et": "Estonian",        "lv": "Latvian",        "lt": "Lithuanian",        "mt": "Maltese",        "cy": "Welsh",
+        "hu": "Hungarian", "en": "English", "la": "Latin", "fr": "French", "de": "German",
+        "es": "Spanish", "it": "Italian", "pt": "Portuguese", "nl": "Dutch", "sv": "Swedish",
+        "fi": "Finnish", "da": "Danish", "no": "Norwegian", "is": "Icelandic", "ga": "Irish",
+        "sq": "Albanian", "el": "Greek", "ro": "Romanian", "bg": "Bulgarian", "hr": "Croatian",
+        "sl": "Slovenian", "cs": "Czech", "sk": "Slovak", "pl": "Polish", "hu": "Hungarian",
+        "et": "Estonian", "lv": "Latvian", "lt": "Lithuanian", "mt": "Maltese", "cy": "Welsh",
         "gd": "Scottish Gaelic",
     }
     for tag in parsed_xml.find_all(lambda t: t.has_attr('xml:lang')):
