@@ -15,10 +15,13 @@ def create_json_data(input_dict, output_path):
                      "identifiers": [],
                      "languages": [],
                      "publication_date": "",
+                     "publisher": "",
                      "resource_type": {},
                      "related_identifiers": [],
                      "rights": [],
-                     "subjects": []
+                     "subjects": [],
+                     "title": "",
+                     "version": ""
                      },
         "pids": {}
     }
@@ -52,6 +55,9 @@ def create_json_data(input_dict, output_path):
     # Add publication date
     json_data["metadata"]["publication_date"] = input_dict["publication_date"]
 
+    # Add publisher
+    json_data["metadata"]["publisher"] = input_dict["Publisher"]
+
     # Add resource type
     resource_type = input_dict["Resource type"]
     json_data["metadata"]["resource_type"] = {"id": resource_type.lower(), "title": {"en": resource_type}}
@@ -63,7 +69,15 @@ def create_json_data(input_dict, output_path):
     # Add rights statements
     json_data["metadata"]["rights"] = [{"id": input_dict["Licenses"]}]
 
+    # Add subjects
+    for subject in input_dict["Subjects"]:
+        json_data = add_subject(json_data, subject)
 
+    # Add title
+    json_data["metadata"]["title"] = input_dict["Title"]
+
+    # Add version
+    json_data["metadata"]["version"] = input_dict["Version"]
 
     # Write json to path
     file_name = input_dict['Filename'].replace(".xml", ".json")
@@ -84,7 +98,7 @@ def add_creator(existing_data, creator_data_list):
                 "identifiers": [
                     {
                         "identifier": creator_id,
-                        "scheme": creator_id_scheme
+                        "scheme": creator_id_scheme.lower()
                     }
                 ],
                 "name": f"{creator_data_list[0]}, {creator_data_list[1]}",
@@ -125,10 +139,10 @@ def add_contributor(existing_data, contributor_data_list):
             "family_name": contributor_data_list[0],
             "given_name": contributor_data_list[1],
             "identifiers": [
-                # {
-                #     "identifier": contributor_data_list[x],
-                #     "scheme": contributor_data_list[x]
-                # }
+                {
+                    "identifier": "",
+                    "scheme": ""
+                }
             ],
             "name": f"{contributor_data_list[0]}, {contributor_data_list[1]}",
             "type": "personal"
@@ -205,6 +219,11 @@ def add_related_identifier(existing_data, identifier):
             "scheme": identifier[2].lower()
         }
     )
+    return existing_data
+
+
+def add_subject(existing_data, subject):
+    existing_data["metadata"]["subjects"].append({"subject": subject})
     return existing_data
 
 
