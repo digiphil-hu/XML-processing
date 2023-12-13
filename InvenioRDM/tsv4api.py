@@ -3,6 +3,7 @@ import datetime
 import re
 from bs4 import BeautifulSoup
 import os
+from dict_to_json import create_json_data
 
 
 def normalize(string):
@@ -202,4 +203,7 @@ invenio_tsv = "invenio_tsv.tsv"
 
 for parsed, path in get_filenames(path_list):
     tsv_dict = tsv_from_xml(parsed, path)
-    write_dict_to_tsv(tsv_dict, invenio_tsv)
+    # write_dict_to_tsv(tsv_dict, invenio_tsv)
+    json_folder = "/home/eltedh/PycharmProjects/XML-processing/InvenioRDM/JSON"
+    create_json_data(tsv_dict, json_folder)
+
