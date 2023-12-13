@@ -71,11 +71,11 @@ def tsv_from_xml(parsed_xml, xml_path):
 
     # PID
     PID = parsed_xml.find('idno', {'type': 'PID'}).text.strip()
-    tsv_dict['filename'] = PID + ".xml"
+    tsv_dict['Filename'] = PID + ".xml"
 
     # Main title
     main_title = normalize(parsed_xml.titleStmt.find('title', {'type': 'main'}).text)
-    tsv_dict['title'] = main_title
+    tsv_dict['Title'] = main_title
 
     # Description
     series_title = []
@@ -84,10 +84,10 @@ def tsv_from_xml(parsed_xml, xml_path):
     desciption = ("<p>"
                   + "<br>".join(series_title) + "<br>"
                   + main_title + "</p")
-    tsv_dict['description'] = desciption
+    tsv_dict['Description'] = desciption
 
     # Fixed values
-    tsv_dict['communities'] = 'critical-editions'
+    tsv_dict['Communities'] = 'critical-editions'
     tsv_dict['Resource type'] = 'Dataset'
 
     # Creators
@@ -147,7 +147,7 @@ def tsv_from_xml(parsed_xml, xml_path):
     current_date = datetime.datetime.now()
     formatted_date = current_date.strftime("%Y-%m-%d")
     tsv_dict['publication_date'] = formatted_date
-    tsv_dict['Dates'] = [print_edition_date, "Issued", "Publication of the print version"]
+    tsv_dict['Dates'] = [[print_edition_date, "Issued", "Publication of the print version"]]
 
     # Version
     tsv_dict['Version'] = "1.0"
@@ -156,7 +156,7 @@ def tsv_from_xml(parsed_xml, xml_path):
     tsv_dict['Publisher'] = "DigiPhil"
 
     # Alternate identifiers
-    tsv_dict['Alternate Identifiers'] = [("20.500.14368/" + PID), "Handle"]
+    tsv_dict['Alternate Identifiers'] = [[("20.500.14368/" + PID), "Handle"]]
 
     # Related works
     github_file_link = parsed_xml.publicationStmt.find('ref', {'target': True})['target']
@@ -194,7 +194,8 @@ def get_languages(parsed_xml):
         language_codes_set.add(lang_code)
     if len(language_codes_set) == 0:
         language_codes_set.add("hu")
-    language_list = [european_languages[lan] for lan in language_codes_set]
+    language_list = [(lan + ":" + european_languages[lan]) for lan in language_codes_set]
+    print(language_list)
     return language_list
 
 
