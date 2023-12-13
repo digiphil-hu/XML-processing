@@ -155,7 +155,7 @@ def tsv_from_xml(parsed_xml, xml_path):
     tsv_dict['Publisher'] = "DigiPhil"
 
     # Alternate identifiers
-    tsv_dict['Alternate Identifiers'] = ["20.500.14368/", PID, "Handle"]
+    tsv_dict['Alternate Identifiers'] = [("20.500.14368/" + PID), "Handle"]
 
     # Related works
     github_file_link = parsed_xml.publicationStmt.find('ref', {'target': True})['target']
