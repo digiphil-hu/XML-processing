@@ -4,12 +4,6 @@ from bs4 import BeautifulSoup
 from RMKT_17_6.koha2itidata import idno_koha2itidata, tsv_to_dict
 
 
-def ends_with_numbers_or_f_j(filename):
-    pattern1 = r'\d+\.xml$'
-    pattern2 = r'[fj]-\d'
-    return re.search(pattern1, filename) is not None or re.search(pattern2, filename) is not None
-
-
 def parse_xml(xml_path):
     with open(xml_path, 'r', encoding='utf-8') as file:
         xml_content = file.read()
@@ -30,13 +24,14 @@ def get_filenames(f_path_list):
 
 
 def change_header(parsed_xml, xml_path):
-    new_header = parse_xml('/home/eltedh/PycharmProjects/XML-processing/RMKT_17_6/perfect-rmkt-17-6-header.xml')
+    new_header_tei = parse_xml('perfect-rmkt-17-16-tei-header.xml')
+    new_header = new_header_tei.teiHeader
     old_header = parsed_xml.teiHeader
 
     # Replace num title
     old_num = old_header.titleStmt.find('title', {'type': 'num'})
     new_num = new_header.titleStmt.find('title', {'type': 'num'})
-    if old_num and new_num:
+    if old_num:
         new_num.string = old_num.string
 
     # Replace main title
@@ -46,21 +41,26 @@ def change_header(parsed_xml, xml_path):
         new_main.string = old_main.string
 
     # Create PID
-    if old_num:
-        verse_num = old_num.string.replace('.', '')
-        if verse_num.isnumeric() is not True:
-            print('Verse number is not a number!')
+    old_file_info = xml_path.split('/')[-1].split('.xml')[0].replace('RMKT-XVII-16-', '')
+    if old_file_info == "-0-Előszó":
+        PID = "rmkt-17-16.tei.eloszo"
+    elif old_file_info == "-01-Bevezetés":
+        PID = "rmkt-17-16.tei.bevezeto"
+    elif old_file_info == "KIJegyzetek":
+        PID = "rmkt-17-16.tei.ki-jegyzetek"
+    elif old_file_info == "KPJegyzetek":
+        PID = "rmkt-17-16.tei.kp-jegyzetek"
+    elif old_file_info == "PKSZJegyzetek":
+        PID = "rmkt-17-16.tei.pksz-jegyzetek"
+    elif old_file_info == "RDJegyzetek":
+        PID = "rmkt-17-16.tei.rdj-jegyzetek"
     else:
-        pattern = r'[fj]-\d'
-        match = re.search(pattern, xml_path.split('/')[-1])
-        verse_num = match.group(0)
-        # print(xml_path, verse_num)
-    PID = 'rmkt-17-6.tei.' + verse_num
+        PID = 'rmkt-17-16.tei.' + old_file_info.split('-')[1] + '-' + old_file_info.split('-')[0]
     new_header.find('idno', {'type': 'PID'}).string = PID
 
     # Add GitHub link
-    ref_github = new_header.find('ref', {'target': 'https://github.com/digiphil-hu/rmkt-17-6/blob/main/'})
-    ref_github['target'] = 'https://github.com/digiphil-hu/rmkt-17-6/blob/main/' + PID + ".xml"
+    ref_github = new_header.find('ref', {'target': True})
+    ref_github['target'] = 'https://github.com/digiphil-hu/rmkt-17-16/blob/main/' + PID + ".xml"
 
     # Add listWit
     if old_header.listWit:
@@ -80,13 +80,13 @@ def change_header(parsed_xml, xml_path):
 
 
 tsv_path = "/home/eltedh/PycharmProjects/XML-processing/KOHA/KOHA_output_data_RMKT/itidata_koha_pim_biblio_auth_geo.csv"
-path_list = ["/home/eltedh/GitHub/RMKT-XVII-16/RMKT-XVII-16"]
+path_list = ["/home/eltedh/GitHub/RMKT-XVII-16/modified-rmkt-17-16"]
 koha_dict = tsv_to_dict(tsv_path)
 
 
 for parsed, path in get_filenames(path_list):
-    # if ends_with_numbers_or_f_j(path):
-    #     change_header(parsed, path)
+
+    change_header(parsed, path)
     soup_new = idno_koha2itidata(parsed, path, koha_dict)
 
     # Save the modified XML back to a file

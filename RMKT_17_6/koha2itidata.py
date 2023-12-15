@@ -14,12 +14,14 @@ def idno_koha2itidata(parsed_xml, xml_path, koha_itidata_dict):
     koha_list = []
     for idno_tag in parsed_xml.find_all('idno', {'type': 'KOHA_AUTH'}):
         # print(idno_tag.parent.name, idno_tag.string, idno_tag.get('corresp'))
-        if idno_tag.parent.name == 'persName':
+        # if idno_tag.parent.name == 'persName':
             koha_key = idno_tag.string.replace('KOHA_AUTH:', '').strip()
             # print(idno_tag.string, xml_path)
             idno_tag['type'] = 'ITIdata'
-            idno_tag.string = koha_itidata_dict[koha_key]
-            # print(idno_tag)
+            try:
+                idno_tag.string = koha_itidata_dict[koha_key]
+            except KeyError:
+                print(idno_tag.text.split(":")[1])
     for idno_tag in parsed_xml.find_all('idno', {'type': 'KOHA_GEO'}):
         koha_key = idno_tag.string.replace('KOHA_GEO:', '').strip()
         idno_tag['type'] = 'ITIdata'

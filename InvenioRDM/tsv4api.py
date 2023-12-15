@@ -198,7 +198,7 @@ def get_languages(parsed_xml):
     return language_list
 
 
-path_list = ["/home/eltedh/GitHub/RMKT-XVII-16/modified-rmkt-17-6"]
+path_list = ["/home/eltedh/GitHub/rmkt-17-6"]
 invenio_tsv = "invenio_tsv.tsv"
 
 for parsed, path in get_filenames(path_list):

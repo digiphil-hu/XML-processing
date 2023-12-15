@@ -44,9 +44,9 @@ def create_json_data(input_dict, output_path):
     # Add description
     json_data["metadata"]["description"] = input_dict["Description"]
 
-    # Add alternative identifiers
-    for identifier in input_dict["Alternate Identifiers"]:
-        json_data = add_alternate_identifier(json_data, identifier)
+    # # Add alternative identifiers
+    # for identifier in input_dict["Alternate Identifiers"]:
+    #     json_data = add_alternate_identifier(json_data, identifier)
 
     # Add languages
     for language in input_dict["Languages"]:
@@ -186,6 +186,7 @@ def add_alternate_identifier(existing_data, identifier_data):
 
 def add_language(existing_data, language_data):
     langugae_code = language_data.split(":")[0]
+    langugae_code = langugae_code.replace("hu", "hun").replace("la", "lat")
     language_in_english = language_data.split(":")[1]
     existing_data["metadata"]["languages"].append(
         {

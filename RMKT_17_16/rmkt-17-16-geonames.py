@@ -1,5 +1,6 @@
 import csv
 
+
 def write_selected_geonames(short_list, geo_koha_dump, output_file):
     with open(short_list, 'r', encoding='utf') as list_file:
         short_list_set = set()
