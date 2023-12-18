@@ -87,7 +87,8 @@ def create_json_data(input_dict, output_path):
 def add_creator(existing_data, creator_data_list):
     # Add creator to the "creators" list
     # If there is an identifier:
-    if len(creator_data_list) > 3:
+    # TODO: "Hernády" ORCID to Invenio RDM
+    if len(creator_data_list) > 3 and creator_data_list[0] != "Hernády":
         creator_id = creator_data_list[3].split(':')[1].strip()
         creator_id_scheme = creator_data_list[3].split(':')[0].strip()
 
@@ -186,6 +187,7 @@ def add_alternate_identifier(existing_data, identifier_data):
 
 def add_language(existing_data, language_data):
     langugae_code = language_data.split(":")[0]
+    # TODO: change 2 character long language tags to 3 in XML files
     langugae_code = langugae_code.replace("hu", "hun").replace("la", "lat")
     language_in_english = language_data.split(":")[1]
     existing_data["metadata"]["languages"].append(

@@ -198,12 +198,12 @@ def get_languages(parsed_xml):
     return language_list
 
 
-path_list = ["/home/eltedh/GitHub/rmkt-17-6"]
-invenio_tsv = "invenio_tsv.tsv"
+path_list = ["/home/eltedh/GitHub/RMKT-XVII-16/modified-rmkt-17-16"]
+invenio_tsv = "rmkt_17-16_invenio_tsv.tsv"
 
 for parsed, path in get_filenames(path_list):
     tsv_dict = tsv_from_xml(parsed, path)
     # write_dict_to_tsv(tsv_dict, invenio_tsv)
-    json_folder = "/home/eltedh/PycharmProjects/XML-processing/InvenioRDM/JSON"
+    json_folder = "/home/eltedh/PycharmProjects/XML-processing/InvenioRDM/RMKT-17-16_JSON"
     create_json_data(tsv_dict, json_folder)
 
