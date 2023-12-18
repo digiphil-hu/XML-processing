@@ -1,13 +1,6 @@
 from bs4 import BeautifulSoup
-import re
 
-
-def normalize(string):
-    string = string.strip()
-    string = string.replace('\t', '')
-    string = string.replace('\n', '')
-    string = re.sub(r'\s+', ' ', string)
-    return string
+from xml_methods import normalize
 
 
 def extract_field_value(soup, tag, subfield_code, tag_value):
