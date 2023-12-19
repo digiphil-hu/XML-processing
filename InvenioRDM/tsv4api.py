@@ -4,6 +4,7 @@ import re
 from bs4 import BeautifulSoup
 import os
 from dict_to_json import create_json_data
+from xml_methods import prettify_soup
 
 
 def normalize(string):
@@ -81,8 +82,8 @@ def tsv_from_xml(parsed_xml, xml_path):
     series_title = []
     for title in parsed_xml.sourceDesc.bibl.find_all('title'):
         series_title.append(normalize(title.text.strip()))
-    desciption = ("<p>"
-                  + "<br>".join(series_title) + "<br>"
+    desciption = ("<p> "
+                  + "<br> ".join(series_title) + "<br> "
                   + main_title + "</p")
     tsv_dict['Description'] = desciption
 
@@ -92,15 +93,15 @@ def tsv_from_xml(parsed_xml, xml_path):
 
     # Creators
     creators_list = []
-    for num, name_tag in enumerate(parsed_xml.find_all('respStmt')):
-        if name_tag.persName:
-            creator_list = [name_tag.surname.text.strip(), name_tag.forename.text.strip(), "Editor"]
+    for num, contrib in enumerate(parsed_xml.find_all('respStmt')):
+        for creator in contrib.find_all('persName'):
+            creator_list = [creator.surname.text.strip(), creator.forename.text.strip(), "Editor"]
             orc_id, isni_id = ("", "")
-            if name_tag.find('idno', {'type': 'ORCID'}):
-                orc_id = "ORCID:" + name_tag.find('idno', {'type': 'ORCID'}).text
+            if creator.find('idno', {'type': 'ORCID'}):
+                orc_id = "ORCID:" + creator.find('idno', {'type': 'ORCID'}).text
             # TODO: ISNI id-s to XML!
-            if name_tag.find('idno', {'type': 'ISNI'}):
-                isni_id = ("ISNI:" + name_tag.find('idno', {'type': 'ISNI'}).text)
+            if creator.find('idno', {'type': 'ISNI'}):
+                isni_id = ("ISNI:" + creator.find('idno', {'type': 'ISNI'}).text)
             if orc_id != "":
                 creator_list.append(orc_id)
             if isni_id != "":
@@ -113,18 +114,18 @@ def tsv_from_xml(parsed_xml, xml_path):
 
     # Contributors
     contributors_list = []
-    for num, name_tag in enumerate(parsed_xml.titleStmt.find_all('author')):
-        if name_tag.persName:
-            if name_tag.surname:
-                contributor_list = [name_tag.surname.text.strip(), name_tag.forename.text.strip(), "Other"]
+    for num, author in enumerate(parsed_xml.titleStmt.find_all('author')):
+        for contrib in author.find_all('persName'):
+            if contrib.surname:
+                contributor_list = [contrib.surname.text.strip(), contrib.forename.text.strip(), "Other"]
             else:
-                contributor_list = [name_tag.persName.text.strip(), "", "Other"]
+                contributor_list = [contrib.persName.text.strip(), "", "Other"]
             orc_id, isni_id = ("", "")
-            if name_tag.find('idno', {'type': 'ORCID'}):
-                orc_id = "ORCID:" + name_tag.find('idno', {'type': 'ORCID'}).text
+            if contrib.find('idno', {'type': 'ORCID'}):
+                orc_id = "ORCID:" + contrib.find('idno', {'type': 'ORCID'}).text
             # TODO: ISNI id-s to XML!
-            if name_tag.find('idno', {'type': 'ISNI'}):
-                isni_id = ("ISNI:" + name_tag.find('idno', {'type': 'ISNI'}).text)
+            if contrib.find('idno', {'type': 'ISNI'}):
+                isni_id = ("ISNI:" + contrib.find('idno', {'type': 'ISNI'}).text)
             if orc_id != "":
                 contributor_list.append(orc_id)
             if isni_id != "":
@@ -198,11 +199,14 @@ def get_languages(parsed_xml):
     return language_list
 
 
-path_list = ["/home/eltedh/GitHub/RMKT-XVII-16/modified-rmkt-17-16"]
+path_list = ["/home/eltedh/GitHub/rmkt-17-16"]
 invenio_tsv = "rmkt_17-16_invenio_tsv.tsv"
 
+# TODO: tsv and Json creation do not run in parallel
 for parsed, path in get_filenames(path_list):
-    tsv_dict = tsv_from_xml(parsed, path)
+    parsed = prettify_soup(parsed)
+    new_soup = BeautifulSoup(parsed, 'xml')
+    tsv_dict = tsv_from_xml(new_soup, path)
     # write_dict_to_tsv(tsv_dict, invenio_tsv)
     json_folder = "/home/eltedh/PycharmProjects/XML-processing/InvenioRDM/RMKT-17-16_JSON"
     create_json_data(tsv_dict, json_folder)

@@ -29,3 +29,12 @@ def normalize(string):
     string = string.replace('\n', '')
     string = re.sub(r'\s+', ' ', string)
     return string
+
+
+def prettify_soup(soup):
+    # Prettify
+    string = str(soup)
+    string = string.replace('\t', '')
+    string = string.replace('\n', '')
+    string = re.sub(r'\s+', ' ', string)
+    return string

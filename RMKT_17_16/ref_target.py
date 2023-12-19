@@ -26,3 +26,11 @@ for parsed, path in get_filenames(path_list):
     if write_file:
         with open(new_path + new_filename, 'w', encoding='utf-8') as file:
             file.write(str(parsed))
+
+
+# # Idno tag-s: has corresp="", no type="", tag.text contains string
+# for parsed, path in get_filenames(path_list):
+#     for id_no in parsed.find_all("idno", {"corresp": True}):
+#         if id_no.text != "" and not id_no.get("type"):
+#             print(id_no)
+

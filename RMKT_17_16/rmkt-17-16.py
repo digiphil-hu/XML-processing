@@ -1,8 +1,5 @@
-import re
 from RMKT_17_6.koha2itidata import idno_koha2itidata, tsv_to_dict
-import xml.dom.minidom
-
-from xml_methods import parse_xml, get_filenames
+from xml_methods import parse_xml, get_filenames, prettify_soup
 
 
 def change_header(parsed_xml, xml_path):
@@ -70,14 +67,10 @@ def change_header(parsed_xml, xml_path):
     return parsed_xml
 
 
-def prettify_xml(xml_string):
-    dom = xml.dom.minidom.parseString(xml_string)
-    return dom.toprettyxml(indent=' ')
-
 tsv_path = "/home/eltedh/PycharmProjects/XML-processing/KOHA/KOHA_output_data_RMKT/itidata_koha_pim_biblio_auth_geo.csv"
 path_list = ["/home/eltedh/GitHub/RMKT-XVII-16/RMKT-XVII-16/"]
 koha_dict = tsv_to_dict(tsv_path)
-
+new_path = "/home/eltedh/PycharmProjects/XML-processing/RMKT_17_16/XML/"
 
 for parsed, path in get_filenames(path_list):
     # Change the header to a new on
@@ -89,15 +82,9 @@ for parsed, path in get_filenames(path_list):
     # Get the PID to build filename
     new_filename = soup_new.find('idno', {'type': 'PID'}).string + '.xml'
 
-    # Prettify
-    string = str(soup_new)
-    string = string.replace('\t', '')
-    string = string.replace('\n', '')
-    string = re.sub(r'\s+', ' ', string)
+    string_soup = prettify_soup(soup_new)
 
     # Save the modified XML back to a file
-    # print(path, new_filename)
-    new_path = "/home/eltedh/PycharmProjects/XML-processing/RMKT_17_16/XML/"
 
     with open(new_path + new_filename, 'w', encoding='utf-8') as file:
-        file.write(string)
+        file.write(string_soup)
