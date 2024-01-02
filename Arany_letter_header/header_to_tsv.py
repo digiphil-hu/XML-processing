@@ -69,7 +69,6 @@ def create_dictionary(soup, path):
     for tag in head.find_all('note'): # Leave out placeName or date tags from note type critic
         tag.decompose()
     title = head.find('title').text
-    print(title)
     title = normalize_allcaps(title)
     elveszett = " [Elveszett]," if (soup.find('term', string='Elveszett.')
                                     or soup.find('supplied', string="Elveszett")) else ","
@@ -81,19 +80,18 @@ def create_dictionary(soup, path):
     date = normalize_whitespaces(date)
 
     lhu_value = f"{title}{elveszett} {place_name}{date}"
-    print(lhu_value)
+    print(lhu_value, path)
 
     # Sender and receiver namespace identity
-
-    sender_id_tag = soup.correspDesc.find("correspAction", attrs={"type": "sent"}).persName.idno
-    if sender_id_tag:
-        sender_id = sender_id_tag.text
+    sender_id_tag = soup.correspDesc.find("correspAction", attrs={"type": "sent"}).persName
+    if sender_id_tag and sender_id_tag.idno:
+        sender_id = sender_id_tag.idno.text
     else:
         sender_id = None
 
-    recipient_id_tag = soup.correspDesc.find("correspAction", attrs={"type": "recieved"}).persName.idno
-    if recipient_id_tag:
-        recipient_id = recipient_id_tag.text
+    recipient_id_tag = soup.correspDesc.find("correspAction", attrs={"type": "recieved"}).persName
+    if recipient_id_tag and recipient_id_tag.idno:
+        recipient_id = recipient_id_tag.idno.text
     else:
         recipient_id = None
 
@@ -101,7 +99,7 @@ def create_dictionary(soup, path):
     hu_desciption = []
     en_description = []
     sender_tag = soup.correspDesc.find("correspAction", attrs={"type": "sent"})
-    if sender_tag and sender_id_tag:
+    if sender_tag and sender_id_tag and sender_id_tag.idno:
         sender_tag.persName.idno.decompose()
         sender = normalize_whitespaces(sender_tag.persName.text)
     else:
