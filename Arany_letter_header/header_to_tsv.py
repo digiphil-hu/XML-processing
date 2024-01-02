@@ -5,6 +5,7 @@ import os
 from bs4 import BeautifulSoup
 import lxml
 import re
+from xml_methods import get_filenames
 
 
 def revert_persname(name):
@@ -28,10 +29,20 @@ def normalize_allcaps(input_str):
     """
     Function to normalize ALLCAPS input string as per the specified rules.
     """
-    # Convert to ALLCAPS and then capitalize only the first character of person names
-    words = input_str.upper().split()
-    normalized_words = [word.capitalize() if word.isalpha() else word for word in words]
-    normalized_str = ' '.join(normalized_words).replace("– ", "")
+    # Capitalize only the first character of person names
+    word_list = []
+    input_str = input_str.replace("-", "").replace("–", "")
+    input_str = normalize_whitespaces(input_str).strip()
+    words = input_str.split()
+    for word in words:
+        if not "." in word: # Do not capitalize abbreviations
+            if word.startswith("("): # Capitalize (words)
+                word = "(" + word[1:].capitalize()
+            else:
+                word = word.capitalize()
+        word_list.append(word)
+    # normalized_words = [word.capitalize() if word.isalpha() else word for word in words]
+    normalized_str = ' '.join(word_list)
     return normalized_str
 
 
@@ -44,35 +55,7 @@ def normalize_whitespaces(input_str):
     return input_str
 
 
-def iterate_xml_files(f_path):
-    """
-    Iterates through each XML file in the given folder path.
-    Calls parse_xml function for each file.
-
-    Parameters:
-    - folder_path (str): Path of the folder containing XML files.
-    """
-    for filename in os.listdir(f_path):
-        if filename.endswith(".xml"):
-            xml_path = os.path.join(f_path, filename)
-            parse_xml(xml_path)
-
-
-def parse_xml(xml_path):
-    """
-    Parses the given XML file using BeautifulSoup.
-
-    Parameters:
-    - xml_path (str): Path of the XML file.
-    """
-    with open(xml_path, 'r', encoding='utf-8') as file:
-        xml_content = file.read()
-    # print(xml_path)
-    soup = BeautifulSoup(xml_content, 'xml')
-    create_dictionary(soup)
-
-
-def create_dictionary(soup):
+def create_dictionary(soup, path):
     """
     Creates a dictionary with keys 'Lhu' and 'Len' based on the given BeautifulSoup object.
 
@@ -83,26 +66,42 @@ def create_dictionary(soup):
 
     # Extract data for 'Lhu'
     head = soup.body.div.find('head')
+    for tag in head.find_all('note'): # Leave out placeName or date tags from note type critic
+        tag.decompose()
     title = head.find('title').text
+    print(title)
     title = normalize_allcaps(title)
     elveszett = " [Elveszett]," if (soup.find('term', string='Elveszett.')
                                     or soup.find('supplied', string="Elveszett")) else ","
     place_name = get_text_with_supplied(head, 'placeName')
+    place_name = normalize_whitespaces(place_name)
     if place_name != "":
         place_name += ", "
     date = get_text_with_supplied(head, 'date')
+    date = normalize_whitespaces(date)
 
     lhu_value = f"{title}{elveszett} {place_name}{date}"
+    print(lhu_value)
 
     # Sender and receiver namespace identity
-    sender_id = soup.correspDesc.find("correspAction", attrs={"type": "sent"}).persName.idno.text
-    recipient_id = soup.correspDesc.find("correspAction", attrs={"type": "recieved"}).persName.idno.text
+
+    sender_id_tag = soup.correspDesc.find("correspAction", attrs={"type": "sent"}).persName.idno
+    if sender_id_tag:
+        sender_id = sender_id_tag.text
+    else:
+        sender_id = None
+
+    recipient_id_tag = soup.correspDesc.find("correspAction", attrs={"type": "recieved"}).persName.idno
+    if recipient_id_tag:
+        recipient_id = recipient_id_tag.text
+    else:
+        recipient_id = None
 
     # Extract data for 'Dhu', 'Den'
     hu_desciption = []
     en_description = []
     sender_tag = soup.correspDesc.find("correspAction", attrs={"type": "sent"})
-    if sender_tag:
+    if sender_tag and sender_id_tag:
         sender_tag.persName.idno.decompose()
         sender = normalize_whitespaces(sender_tag.persName.text)
     else:
@@ -135,18 +134,18 @@ def create_dictionary(soup):
 
     # Populate dictionary
     data_dict['qid'] = ""
-    data_dict['Lhu'] = '"' + normalize_whitespaces(lhu_value) + '"'
-    data_dict['Len'] = '"' + normalize_whitespaces(lhu_value) + '"'
-    data_dict['Dhu'] = '"' + ", ".join(hu_desciption) + '"'
-    data_dict['Den'] = '"' + ", ".join(en_description) + '"'
+    data_dict['Lhu'] = lhu_value
+    data_dict['Len'] = lhu_value
+    data_dict['Dhu'] = ", ".join(hu_desciption)
+    data_dict['Den'] = ", ".join(en_description)
     data_dict['P1'] = "Q26"
     data_dict['P7'] = sender_id
     data_dict['P80'] = recipient_id
     data_dict['P41'] = "Q26"
     data_dict['P44'] = id_edition
-    data_dict['P49'] = '""""' + "0." + '"'
-    data_dict['P106'] = '""""' + series_ordinal + '"'
-    data_dict['P18'] = '""""' + "Kritikai jegyzetek: 0. oldal. (magyar)" + '"'
+    data_dict['P49'] = "0."
+    data_dict['P106'] = series_ordinal
+    data_dict['P18'] = "Kritikai jegyzetek: 0. oldal. (magyar)"
     data_dict['P57'] = "+" + publication_date + '-01-01T00:00:00Z/9'
     write_to_csv(data_dict)
 
@@ -183,7 +182,9 @@ def write_to_csv(data_dict):
 
 
 # Example usage:
-folder_path = '/home/eltedh/PycharmProjects/DATA/Arany XML/a_tei xml_final'
+folder_list = ["/home/eltedh/GitHub/migration-ajom-17",
+               "/home/eltedh/GitHub/migration-ajom-18",
+               "/home/eltedh/GitHub/migration-ajom-19"]
 with open('output.tsv', "w", encoding="utf8") as f:
     # write header:
     header_list = ["qid",
@@ -200,5 +201,8 @@ with open('output.tsv', "w", encoding="utf8") as f:
                    "P106",
                    "P18",
                    "P57"]
-    f.write("\t".join(header_list) + "\n\t")
-    iterate_xml_files(folder_path)
+    # f.write("\t".join(header_list) + "\n" + "\n")
+for parsed, path in get_filenames(folder_list):
+    create_dictionary(parsed, path)
+
+
