@@ -1,26 +1,20 @@
 import requests
 
 # Define the Wikidata API endpoint
-wikidata_api_endpoint = "https://www.wikidata.org/w/api.php"
+api_endpoint = "https://itidata.abtk.hu/w/api.php"
 
 # Define the Wikidata Query Service endpoint
-wdqs_endpoint = "https://query.wikidata.org/sparql"
+wdqs_endpoint = "https://query.itidata.abtk.hu/proxy/wdqs/bigdata/namespace/wdq/sparql"
 
 # Set the request headers
 headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0",
     "Accept": "application/json"
 }
-def get_wikidata_item_info(item_ids):
-    """
-    Retrieves information for a list of Wikidata item IDs.
 
-    Parameters:
-    - item_ids (list): List of Wikidata item IDs.
 
-    Returns:
-    - dict: Dictionary containing item IDs as keys and corresponding lists as values.
-    """
+def get_itidata_item_info(item_ids):
+
     # Initialize result dictionary
     result_dict = {}
 
@@ -34,7 +28,7 @@ def get_wikidata_item_info(item_ids):
 
     try:
         # Send the HTTP request to the Wikidata API
-        response = requests.get(wikidata_api_endpoint, params=params)
+        response = requests.get(api_endpoint, params=params)
         data = response.json()
 
         # Iterate over item IDs and extract information
@@ -47,25 +41,30 @@ def get_wikidata_item_info(item_ids):
             hungarian_label = labels.get("hu", {}).get("value", "")
             item_labels = [english_label, hungarian_label]
 
-            # Extract values for P31 (instance of)
-            instance_of_claims = entity_data.get("claims", {}).get("P31", [])
-            instance_of_values = [claim["mainsnak"]["datavalue"]["value"]["id"] for claim in instance_of_claims]
+            # Extract values for P2 (wikidata id)
+            wikidata_claims = entity_data.get("claims", {}).get("P2", [])
+            wikidata_id_values = [claim["mainsnak"]["datavalue"]["value"] for claim in wikidata_claims]
 
-            # Extract values for P17 (country)
-            country_claims = entity_data.get("claims", {}).get("P17", [])
+            # Extract values for P1 (instance of)
+            instance_of_claims = entity_data.get("claims", {}).get("P1", [])
+            instance_of_values = [claim["mainsnak"]["datavalue"]["value"]["id"] for claim in instance_of_claims]
+            #
+            # Extract values for P20 (country)
+            country_claims = entity_data.get("claims", {}).get("P20", [])
             country_values = [claim["mainsnak"]["datavalue"]["value"]["id"] for claim in country_claims]
 
-            # Extract values for P625 (coordinate location)
+            # Extract values for P19 (coordinate location)
             coordinate_claims = entity_data.get("claims", {}).get("P625", [])
             coordinate_values = [(claim["mainsnak"]["datavalue"]["value"]["latitude"],
-                                   claim["mainsnak"]["datavalue"]["value"]["longitude"]) for claim in coordinate_claims]
+                                  claim["mainsnak"]["datavalue"]["value"]["longitude"]) for claim in coordinate_claims]
 
             # Populate the result dictionary with item ID as key and lists as values
             result_dict[item_id] = {
                 "item_labels": item_labels,
-                "instance_of_values": instance_of_values,
-                "country_values": country_values,
-                "coordinate_values": coordinate_values
+                "wikidata_id": wikidata_id_values,
+                "instance_of": instance_of_values,
+                "country": country_values,
+                # "coordinates": coordinate_values
             }
 
     except Exception as e:
@@ -75,7 +74,7 @@ def get_wikidata_item_info(item_ids):
     return result_dict
 
 
-def get_subclasses_of_human_settlement():
+def get_itidata_subclasses_of_human_settlement():
     """
     Retrieves subclasses of "human settlement" in Wikidata.
 
@@ -85,7 +84,7 @@ def get_subclasses_of_human_settlement():
     # Define the SPARQL query to retrieve subclasses of "human settlement"
     sparql_query = """
     SELECT ?subclass ?subclassLabel WHERE {
-        ?subclass wdt:P279 wd:Q486972;  # Subclass of human settlement
+        ?subclass wdt:P14/wdt:P14* wd:Q51;  # Subclass or sub-subclass of human settlement
                  rdfs:label ?subclassLabel.
         FILTER(LANG(?subclassLabel) = "en").
     }
@@ -108,6 +107,7 @@ def get_subclasses_of_human_settlement():
         # Create a list of tuples containing subclass item id and label
         subclasses = [(result["subclass"]["value"].split("/")[-1], result["subclassLabel"]["value"])
                       for result in results]
+        subclasses.append(('Q51', 'human settlement'))
 
         return subclasses
 
@@ -118,37 +118,27 @@ def get_subclasses_of_human_settlement():
     return []
 
 
-def get_wikidata_item_id_from_wikidata_api(label):
-    """
-    Retrieves the Wikidata item ID for a given label using the Wikidata API.
-
-    Parameters:
-    - label (str): Label of the item.
-
-    Returns:
-    - str: Wikidata item ID or an empty string if not found.
-    """
+def get_itidata_item_id(label):
     # Set the request parameters
     params = {
         "action": "wbsearchentities",
         "format": "json",
-        "language": "en",
+        "language": "hu",
         "search": label,
         "type": "item",
     }
 
     try:
-        # Send the HTTP request to the Wikidata API
-        response = requests.get(wikidata_api_endpoint, params=params)
+        # Send the HTTP request to the itidata API
+        response = requests.get(api_endpoint, params=params)
         data = response.json()
 
         # Check if any entities were found
         if data.get("search"):
-            # Get a list of Wikidata item IDs from the search results
-            wikidata_item_ids = [result["id"] for result in data["search"]]
+            # Get a list of itidata item IDs from the search results
+            itidata_item_ids = [result["id"] for result in data["search"]]
 
-            return wikidata_item_ids
-
+            return itidata_item_ids
 
     except Exception as e:
         print(f"Error: {e}")
@@ -157,25 +147,44 @@ def get_wikidata_item_id_from_wikidata_api(label):
     return ""
 
 
-if __name__ == "__main__":
-    # Example usage
-    label_to_search = "Budapest"
+def get_item_labels_from_itidata(item_id):
 
-    # Step 2: Get the Wikidata item ID using the Wikidata API
-    wikidata_item_ids = get_wikidata_item_id_from_wikidata_api(label_to_search)
+    # Set the request parameters
+    params = {
+        "action": "wbgetentities",
+        "ids": item_id,
+        "languages": "hu|en",  # Specify languages for labels (Hungarian and English)
+        "format": "json"
+    }
 
-    # Display the Wikidata item ID
-    for wikidata_item_id in wikidata_item_ids:
-        print("Wikidata Item ID:", wikidata_item_id)
+    try:
+        # Send the HTTP request to the Wikidata API
+        response = requests.get(api_endpoint, params=params)
+        data = response.json()
 
-    # Step 3: Get information for the specified Wikidata item IDs
-    result_dict = get_wikidata_item_info(wikidata_item_ids)
+        # Extract relevant information from the response
+        entity = data.get("entities", {}).get(item_id, {})
+        labels = entity.get("labels", {})
+        label_hu = labels.get("hu", {}).get("value", "")
+        label_en = labels.get("en", {}).get("value", "")
 
-    # Display the result tuple
-    print("Result dict: ")
-    for result_list in result_tuple:
-        print(result_list)
+        if label_hu is None or label_hu == "":
+            return label_en + f"({item_id})"
+        else:
+            return label_hu + f"({item_id})"
 
-    # subclasses = get_subclasses_of_human_settlement()
-    # for subclass in subclasses:
-    #     print(subclass)
+    except Exception as e:
+        print(f"Error: {e}")
+
+    # Return empty strings if an error occurred
+    return "Unknown"
+
+#
+# print(get_itidata_subclasses_of_human_settlement())
+# print(get_item_labels_from_itidata("Q2727"))
+# bud_ids = get_itidata_item_id("Budapest")
+# print(bud_ids)
+# bud_dict = get_itidata_item_info(bud_ids)
+# for key, value in bud_dict.items():
+#     print(f"{key}: {value}")
+#
