@@ -39,7 +39,7 @@ if __name__ == '__main__':
     print("Wikidata human settlement subclasses:", len(wikidata_subclass_set))
     print("Itidata human settlement subclasses:", len(itidata_subclass_set))
 
-    with open("/home/eltedh/PycharmProjects/XML-processing/Arany_letter_header/AJOM_GEO/ajom_header_geonames.csv",
+    with open("/AJOM17_18_19/AJOM_GEO/ajom_header_geonames.csv",
               "r", encoding="utf8") as csvfile:
         reader = csv.reader(csvfile, delimiter="\n")
         for row in reader:
