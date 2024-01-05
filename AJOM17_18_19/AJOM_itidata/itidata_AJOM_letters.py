@@ -1,7 +1,7 @@
 import csv
 import re
 from get_geo_namespace_id_itidata import get_eng_hun_item_labels_from_itidata
-from xml_methods import compare_text_normalize
+from xml_methods import compare_text_normalize, normalize
 import difflib
 
 
@@ -96,16 +96,23 @@ with open("shortened_xml.tsv", "r", encoding="utf-8") as shortened_xml_tsv_file:
 
             # Check related item
             related_item_id = itidata_json["entities"][itidata_id]["claims"]["P129"][0]["mainsnak"]["datavalue"]["value"]["id"]
-            related_item_lable = get_eng_hun_item_labels_from_itidata(related_item_id, "")[0]
-            if related_item_lable != itidata_json["entities"][itidata_id]["labels"]["hu"]["value"]:
-                error_row.append(f'CHECK "RELATED TO" (P129) LABEL MISMACH "{related_item_lable}"')
-                print(related_item_lable)
+            related_item_label = get_eng_hun_item_labels_from_itidata(related_item_id, "")[0]
+            # label_hu = itidata_json["entities"][itidata_id]["labels"]["hu"]["value"]
+            label_hu = get_eng_hun_item_labels_from_itidata(itidata_id, "")[0]
 
-
-
-                def highlight_diff(original, modified):
-                    differ = difflib.Differ()
-                    diff = list(differ.compare(original, modified))
+            if normalize(related_item_label) != normalize(label_hu):
+                error_row.append(f'CHECK "RELATED TO" (P129) LABEL MISMACH "{related_item_label}"')
+                differ = difflib.Differ()
+                diff = list(differ.compare(label_hu, related_item_label))
+                highlighted_diff = []
+                for item in diff:
+                    if item.startswith('- '):
+                        highlighted_diff.append(f'\033[91m{item[2:]}\033[0m')  # Red color for deletions
+                    elif item.startswith('+ '):
+                        highlighted_diff.append(f'\033[92m{item[2:]}\033[0m')  # Green color for additions
+                    else:
+                        highlighted_diff.append(item)
+                print(''.join(highlighted_diff))
 
             # print(error_row)
             AJOM17_error_list_file_writer.writerow(error_row)
