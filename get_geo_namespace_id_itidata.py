@@ -179,6 +179,36 @@ def get_item_labels_from_itidata(item_id):
     # Return empty strings if an error occurred
     return "Unknown"
 
+def get_eng_hun_item_labels_from_itidata(item_id):
+
+    # Set the request parameters
+    params = {
+        "action": "wbgetentities",
+        "ids": item_id,
+        "languages": "hu|en",  # Specify languages for labels (Hungarian and English)
+        "format": "json"
+    }
+
+    try:
+        # Send the HTTP request to the Wikidata API
+        response = requests.get(api_endpoint, params=params)
+        data = response.json()
+
+        # Extract relevant information from the response
+        entity = data.get("entities", {}).get(item_id, {})
+        labels = entity.get("labels", {})
+        label_hu = labels.get("hu", {}).get("value", "")
+        label_en = labels.get("en", {}).get("value", "")
+
+        return (label_hu, label_en)
+
+    except Exception as e:
+        print(f"Error: {e}")
+
+    # Return empty strings if an error occurred
+    return "Unknown"
+
+
 #
 # print(get_itidata_subclasses_of_human_settlement())
 # print(get_item_labels_from_itidata("Q2727"))
