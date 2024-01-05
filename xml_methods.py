@@ -38,3 +38,10 @@ def prettify_soup(soup):
     string = string.replace('\n', '')
     string = re.sub(r'\s+', ' ', string)
     return string
+
+
+def compare_text_normalize(string):
+    string = re.sub(r'[^\w\s]', '', string)
+    string = string.replace('\t', '').replace('\n', '')
+    string = re.sub(r'\s+', ' ', string)
+    return string

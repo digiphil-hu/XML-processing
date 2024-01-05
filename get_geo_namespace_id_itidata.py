@@ -179,7 +179,7 @@ def get_item_labels_from_itidata(item_id):
     # Return empty strings if an error occurred
     return "Unknown"
 
-def get_eng_hun_item_labels_from_itidata(item_id):
+def get_eng_hun_item_labels_from_itidata(item_id, what_do_yo_need):
 
     # Set the request parameters
     params = {
@@ -200,14 +200,16 @@ def get_eng_hun_item_labels_from_itidata(item_id):
         label_hu = labels.get("hu", {}).get("value", "")
         label_en = labels.get("en", {}).get("value", "")
 
-        return (label_hu, label_en)
+        if what_do_yo_need == "json":
+            return data
+        else:
+            return (label_hu, label_en)
 
     except Exception as e:
         print(f"Error: {e}")
 
     # Return empty strings if an error occurred
     return "Unknown"
-
 
 #
 # print(get_itidata_subclasses_of_human_settlement())

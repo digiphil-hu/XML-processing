@@ -1,9 +1,10 @@
 import csv
 
 from get_geo_namespace_id_itidata import get_eng_hun_item_labels_from_itidata
+from xml_methods import compare_text_normalize
 
 # Get the list of letters present in itidata
-with (open("itidata_ajom17_sparql_export_short.tsv", "r", encoding="utf-8") as itidata_query_file):
+with (open("itidata_ajom17_sparql_export.tsv", "r", encoding="utf-8") as itidata_query_file):
     itidata_reader = csv.reader(itidata_query_file, delimiter="\t")
     letter_id_dict = dict()
     for row in itidata_reader:
@@ -31,12 +32,41 @@ with open("shortened_xml.tsv", "r", encoding="utf-8") as shortened_xml_tsv_file:
         shortened_xml_reader = csv.reader(shortened_xml_tsv_file, delimiter="\t")
         AJOM17_error_list_file_writer = csv.writer(AJOM17_error_list_file)
         for row in shortened_xml_reader:
+            error_row = []
             itidata_id = row[0]
+            error_row.insert(0, itidata_id)
+            itidata_json = get_eng_hun_item_labels_from_itidata(itidata_id, "json")
 
             # Check if Hungarian and English lables are identical:
-            label_hu_eng = get_eng_hun_item_labels_from_itidata(itidata_id)
-            # if label_hu_eng[0] != label_hu_eng[1]:
-            print(itidata_id, label_hu_eng)
+            if itidata_json["entities"][itidata_id]["labels"]["hu"]["value"] != itidata_json["entities"][itidata_id]["labels"]["en"]["value"]:
+                error_row.append("ITIDATA LABEL @hu != @en")
+
+            # Check if xml tsv lable and itidata lable are identical
+            if compare_text_normalize(itidata_json["entities"][itidata_id]["labels"]["hu"]["value"]
+                                      ) != compare_text_normalize(row[2]):
+                error_row.append("CHECK LABEL:" + row[2])
+
+            # Check if xml tsv description and itidata description are identical for English and Hungarian
+            if compare_text_normalize(itidata_json["entities"][itidata_id]["descriptions"]["hu"]["value"]
+                                      ) != compare_text_normalize(row[4]):
+                error_row.append("CHECK DESCRIPTION @hu:" + row[4])
+            if compare_text_normalize(itidata_json["entities"][itidata_id]["descriptions"]["en"]["value"]
+                                      ) != compare_text_normalize(row[5]):
+                error_row.append("CHECK DESCRIPTION @en:" + row[5])
+
+            # Check Property - Value pairs:
+            property_value_pairs = [("P1", 6),
+                                    ("P41", 9),
+                                    ("P44", 10)
+                                    ]
+
+            for pair in property_value_pairs:
+                if itidata_json["entities"][itidata_id]["claims"][pair[0]][0]["mainsnak"]["datavalue"]["value"]["id"] != row[pair[1]]:
+                    error_row.append(f"CHECK {pair[0]}: " + row[pair[1]])
+
+            AJOM17_error_list_file_writer.writerow(error_row)
+
+
 
 
 
