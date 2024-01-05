@@ -30,7 +30,7 @@ with open("/home/eltedh/PycharmProjects/XML-processing/AJOM17_18_19/output.tsv",
 with open("shortened_xml.tsv", "r", encoding="utf-8") as shortened_xml_tsv_file:
     with open("AJOM17_error_list.tsv", "w", encoding="utf-8") as AJOM17_error_list_file:
         shortened_xml_reader = csv.reader(shortened_xml_tsv_file, delimiter="\t")
-        AJOM17_error_list_file_writer = csv.writer(AJOM17_error_list_file)
+        AJOM17_error_list_file_writer = csv.writer(AJOM17_error_list_file, delimiter="\t")
         for row in shortened_xml_reader:
             error_row = []
             itidata_id = row[0]
@@ -56,13 +56,29 @@ with open("shortened_xml.tsv", "r", encoding="utf-8") as shortened_xml_tsv_file:
 
             # Check Property - Value pairs:
             property_value_pairs = [("P1", 6),
+                                    # ("P7", 7),
+                                    # ("P80", 8),
                                     ("P41", 9),
                                     ("P44", 10)
                                     ]
 
             for pair in property_value_pairs:
-                if itidata_json["entities"][itidata_id]["claims"][pair[0]][0]["mainsnak"]["datavalue"]["value"]["id"] != row[pair[1]]:
+                # print(pair[0], row[pair[1]])
+                try:
+                    if itidata_json["entities"][itidata_id]["claims"][pair[0]][0]["mainsnak"]["datavalue"]["value"]["id"] != row[pair[1]]:
+                        error_row.append(f"CHECK {pair[0]}: " + row[pair[1]])
+                except KeyError:
                     error_row.append(f"CHECK {pair[0]}: " + row[pair[1]])
+
+            # Check page numbers
+            try:
+                page_number = itidata_json["entities"][itidata_id]["claims"]["P49"][0]["mainsnak"]["datavalue"]["value"]
+                if not page_number.endswith(".") or page_number.replace(".", "").replace("-", "").isnumeric():
+                    error_row.append("CHECK PAGE NUMBER (P49) SYNTAX.")
+            except KeyError:
+                error_row.append("CHECK MISSING PAGE NUMBER (P49).")
+
+
 
             AJOM17_error_list_file_writer.writerow(error_row)
 
