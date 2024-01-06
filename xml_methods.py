@@ -61,3 +61,61 @@ def visualize_diff(string_one, string_two):
         else:
             highlighted_diff.append(item)
     print(''.join(highlighted_diff))
+
+
+def revert_persname(name):
+    # normalize whitespaces
+    name = normalize_whitespaces(name)
+
+    # Split the input name into words
+    name_parts = name.split()
+
+    # Check if there are at least two words (GivenName and FamilyName)
+    if len(name_parts) >= 2:
+        # Revert the order of the words
+        english_name = f"{name_parts[-1]} {' '.join(name_parts[:-1])}"
+        return english_name
+    else:
+        # Return the original name if it doesn't follow the expected format
+        return name
+
+
+def normalize_allcaps(input_str):
+    """
+    Function to normalize ALLCAPS input string as per the specified rules.
+    """
+    # Capitalize only the first character of person names
+    word_list = []
+    input_str = input_str.replace("-", "").replace("–", "")
+    input_str = normalize_whitespaces(input_str).strip()
+    words = input_str.split()
+    for word in words:
+        if not "." in word: # Do not capitalize abbreviations
+            if word.startswith("("): # Capitalize (words)
+                word = "(" + word[1:].capitalize()
+            else:
+                word = word.capitalize()
+        word_list.append(word)
+    # normalized_words = [word.capitalize() if word.isalpha() else word for word in words]
+    normalized_str = ' '.join(word_list)
+    return normalized_str
+
+
+def normalize_whitespaces(input_str):
+    """
+    Function to normalize the input string by removing whitespaces.
+    """
+    input_str = re.sub(r"[\n\t]+", "", input_str)
+    input_str = re.sub(r"\s+", " ", input_str)
+    return input_str
+
+
+def write_to_csv(data_dict, output_file):
+    """
+    Writes the values of the dictionary into a single line of the CSV.
+
+    Parameters:
+    - data_dict (dict): Dictionary containing values.
+    """
+    with open(output_file, 'a', encoding='utf-8') as tsv_file:
+        tsv_file.write('\t'.join([str(value) for value in data_dict.values()]) + '\n')

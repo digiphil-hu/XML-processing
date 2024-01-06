@@ -1,58 +1,7 @@
 # This python code reads data from the TEI header of the Arany correcpondence files
 # and formats them to be uploaded to a wikibase instance
 
-import os
-from bs4 import BeautifulSoup
-import lxml
-import re
-from xml_methods import get_filenames
-
-
-def revert_persname(name):
-    # normalize whitespaces
-    name = normalize_whitespaces(name)
-
-    # Split the input name into words
-    name_parts = name.split()
-
-    # Check if there are at least two words (GivenName and FamilyName)
-    if len(name_parts) >= 2:
-        # Revert the order of the words
-        english_name = f"{name_parts[-1]} {' '.join(name_parts[:-1])}"
-        return english_name
-    else:
-        # Return the original name if it doesn't follow the expected format
-        return name
-
-
-def normalize_allcaps(input_str):
-    """
-    Function to normalize ALLCAPS input string as per the specified rules.
-    """
-    # Capitalize only the first character of person names
-    word_list = []
-    input_str = input_str.replace("-", "").replace("–", "")
-    input_str = normalize_whitespaces(input_str).strip()
-    words = input_str.split()
-    for word in words:
-        if not "." in word: # Do not capitalize abbreviations
-            if word.startswith("("): # Capitalize (words)
-                word = "(" + word[1:].capitalize()
-            else:
-                word = word.capitalize()
-        word_list.append(word)
-    # normalized_words = [word.capitalize() if word.isalpha() else word for word in words]
-    normalized_str = ' '.join(word_list)
-    return normalized_str
-
-
-def normalize_whitespaces(input_str):
-    """
-    Function to normalize the input string by removing whitespaces.
-    """
-    input_str = re.sub(r"[\n\t]+", "", input_str)
-    input_str = re.sub(r"\s+", " ", input_str)
-    return input_str
+from xml_methods import get_filenames, revert_persname, normalize_allcaps, normalize_whitespaces, write_to_csv
 
 
 def create_dictionary(soup, path):
@@ -62,7 +11,8 @@ def create_dictionary(soup, path):
     Parameters:
     - soup (BeautifulSoup): BeautifulSoup object representing the parsed XML.
     """
-    data_dict = {}
+    data_dict_letter = {}
+    data_dict_manuscript = {}
 
     # Extract data for 'Lhu'
     head = soup.body.div.find('head')
@@ -80,7 +30,7 @@ def create_dictionary(soup, path):
     date = normalize_whitespaces(date)
 
     lhu_value = f"{title}{elveszett} {place_name}{date}"
-    print(lhu_value, path)
+    # print(lhu_value, path)
 
     # Sender and receiver namespace identity
     sender_id_tag = soup.correspDesc.find("correspAction", attrs={"type": "sent"}).persName
@@ -130,23 +80,39 @@ def create_dictionary(soup, path):
     pid = soup.publicationStmt.find("idno", {"type": "PID"}).text
     series_ordinal = pid.split(".")[-1]
 
-    # Populate dictionary
-    data_dict['qid'] = ""
-    data_dict['Lhu'] = lhu_value
-    data_dict['Len'] = lhu_value
-    data_dict['Dhu'] = ", ".join(hu_desciption)
-    data_dict['Den'] = ", ".join(en_description)
-    data_dict['P1'] = "Q26"
-    data_dict['P7'] = sender_id
-    data_dict['P80'] = recipient_id
-    data_dict['P41'] = "Q26"
-    data_dict['P44'] = id_edition
-    data_dict['P49'] = "0."
-    data_dict['P106'] = series_ordinal
-    data_dict['P18'] = "Kritikai jegyzetek: 0. oldal. (magyar)"
-    data_dict['P57'] = "+" + publication_date + '-01-01T00:00:00Z/9'
-    write_to_csv(data_dict)
+    # Populate dictionary for letters
+    data_dict_letter['qid'] = ""
+    data_dict_letter['Lhu'] = lhu_value
+    data_dict_letter['Len'] = lhu_value
+    data_dict_letter['Dhu'] = ", ".join(hu_desciption)
+    data_dict_letter['Den'] = ", ".join(en_description)
+    data_dict_letter['P1'] = "Q26"
+    data_dict_letter['P7'] = sender_id
+    data_dict_letter['P80'] = recipient_id
+    data_dict_letter['P41'] = "Q26"
+    data_dict_letter['P44'] = id_edition
+    data_dict_letter['P49'] = "0."
+    data_dict_letter['P106'] = series_ordinal
+    data_dict_letter['P18'] = "Kritikai jegyzetek: 0. oldal. (magyar)"
+    data_dict_letter['P57'] = "+" + publication_date + '-01-01T00:00:00Z/9'
 
+    write_to_csv(data_dict_letter, 'xml_header_tsv_letter.tsv')
+
+    # Manuscript description
+    institute = soup.msDesc.msIdentifier.find('institute')
+    if institute is None:
+        institute = elveszett
+    manuscript_description_hu = sender + ", kézirat"
+
+    # Populate dictionary for manuscripts
+    data_dict_manuscript['qid'] = ""
+    data_dict_manuscript['P1'] = "Q15"
+    data_dict_manuscript['Lhu'] = lhu_value
+    data_dict_manuscript['Len'] = lhu_value
+    data_dict_manuscript['Dhu'] = manuscript_description_hu
+    data_dict_manuscript['Den'] = manuscript_description_hu.replace("elveszett", "lost").replace("kézirat", "manuscript")
+
+    write_to_csv(data_dict_manuscript, 'xml_header_tsv_manuscript.tsv')
 
 def get_text_with_supplied(soup, tag_name):
     """
@@ -168,22 +134,11 @@ def get_text_with_supplied(soup, tag_name):
     return ""
 
 
-def write_to_csv(data_dict):
-    """
-    Writes the values of the dictionary into a single line of the CSV.
-
-    Parameters:
-    - data_dict (dict): Dictionary containing values.
-    """
-    with open('output.tsv', 'a', encoding='utf-8') as tsv_file:
-        tsv_file.write('\t'.join([str(value) for value in data_dict.values()]) + '\n')
-
-
 # Example usage:
 folder_list = ["/home/eltedh/GitHub/migration-ajom-17",
                "/home/eltedh/GitHub/migration-ajom-18",
                "/home/eltedh/GitHub/migration-ajom-19"]
-with open('output.tsv', "w", encoding="utf8") as f:
+with open('xml_header_tsv_letter.tsv', "w", encoding="utf8") as f:
     # write header:
     header_list = ["qid",
                    "Lhu",
