@@ -1,7 +1,17 @@
 # This python code reads data from the TEI header of the Arany correcpondence files
 # and formats them to be uploaded to a wikibase instance
+import csv
 
 from xml_methods import get_filenames, revert_persname, normalize_allcaps, normalize_whitespaces, write_to_csv
+
+with open("/home/eltedh/PycharmProjects/XML-processing/AJOM17_18_19/AJOM_itidata/itidata_query_manuscript_collection.csv",
+          "r", encoding="utf-8") as csvfile:
+    csv_reader = csv.reader(csvfile, delimiter="\t")
+    insitution_name_dict = {}
+    for row in csv_reader:
+        insitution_name_dict[row[1]] = (row[0], row[2])
+for key, value in insitution_name_dict.items():
+    print(key, value)
 
 
 def create_dictionary(soup, path):
@@ -94,15 +104,22 @@ def create_dictionary(soup, path):
     data_dict_letter['P49'] = "0."
     data_dict_letter['P106'] = series_ordinal
     data_dict_letter['P18'] = "Kritikai jegyzetek: 0. oldal. (magyar)"
-    data_dict_letter['P57'] = "+" + publication_date + '-01-01T00:00:00Z/9'
+    data_dict_letter['P57'] = "+" + publication_date + '-00-00T00:00:00Z/9'
 
     write_to_csv(data_dict_letter, 'xml_header_tsv_letter.tsv')
 
     # Manuscript description
-    institute = soup.msDesc.msIdentifier.find('institute')
-    if institute is None:
-        institute = elveszett
-    manuscript_description_hu = sender + ", kézirat"
+    if soup.msDesc.msIdentifier.find('institution') is None:
+        institution_abr = "elveszett"
+    else:
+        institution = soup.msDesc.msIdentifier.find('institution').text.strip()
+        if institution in insitution_name_dict:
+            institution_abr = insitution_name_dict[institution][1]
+        else:
+            # print("Unknown insitution name: ", institution)
+            institution_abr = "Unknown"
+    manuscript_description_hu = sender + ", kézirat, " + institution_abr
+
 
     # Populate dictionary for manuscripts
     data_dict_manuscript['qid'] = ""
@@ -113,6 +130,7 @@ def create_dictionary(soup, path):
     data_dict_manuscript['Den'] = manuscript_description_hu.replace("elveszett", "lost").replace("kézirat", "manuscript")
 
     write_to_csv(data_dict_manuscript, 'xml_header_tsv_manuscript.tsv')
+
 
 def get_text_with_supplied(soup, tag_name):
     """
@@ -138,23 +156,24 @@ def get_text_with_supplied(soup, tag_name):
 folder_list = ["/home/eltedh/GitHub/migration-ajom-17",
                "/home/eltedh/GitHub/migration-ajom-18",
                "/home/eltedh/GitHub/migration-ajom-19"]
-with open('xml_header_tsv_letter.tsv', "w", encoding="utf8") as f:
-    # write header:
-    header_list = ["qid",
-                   "Lhu",
-                   "Len",
-                   "Dhu",
-                   "Den",
-                   "P1",
-                   "P7",
-                   "P80",
-                   "P41",
-                   "P44",
-                   "P49",
-                   "P106",
-                   "P18",
-                   "P57"]
-    # f.write("\t".join(header_list) + "\n" + "\n")
+with open('xml_header_tsv_letter.tsv', "w", encoding="utf8") as f1:
+    with open('xml_header_tsv_manuscript.tsv', "w", encoding="utf8") as f2:
+        # write header:
+        header_list = ["qid",
+                       "Lhu",
+                       "Len",
+                       "Dhu",
+                       "Den",
+                       "P1",
+                       "P7",
+                       "P80",
+                       "P41",
+                       "P44",
+                       "P49",
+                       "P106",
+                       "P18",
+                       "P57"]
+        # f.write("\t".join(header_list) + "\n" + "\n")
 for parsed, path in get_filenames(folder_list):
     create_dictionary(parsed, path)
 

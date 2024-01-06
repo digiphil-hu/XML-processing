@@ -90,11 +90,12 @@ def normalize_allcaps(input_str):
     input_str = normalize_whitespaces(input_str).strip()
     words = input_str.split()
     for word in words:
-        if not "." in word: # Do not capitalize abbreviations
-            if word.startswith("("): # Capitalize (words)
+        if not "." in word:  # Do not capitalize abbreviations
+            if word.startswith("("):  # Capitalize (words)
                 word = "(" + word[1:].capitalize()
             else:
                 word = word.capitalize()
+        word = re.sub(r"[Dd][Rr]\.", "Dr.", word)
         word_list.append(word)
     # normalized_words = [word.capitalize() if word.isalpha() else word for word in words]
     normalized_str = ' '.join(word_list)

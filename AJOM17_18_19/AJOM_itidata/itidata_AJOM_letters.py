@@ -15,7 +15,7 @@ with (open("itidata_ajom17_sparql_export.tsv", "r", encoding="utf-8") as itidata
         print("DUPLUM!")
 
 # Single out letters present in itidata
-with open("/home/eltedh/PycharmProjects/XML-processing/AJOM17_18_19/output.tsv", "r", encoding="utf-8") as xml_tsv_file:
+with open("/home/eltedh/PycharmProjects/XML-processing/AJOM17_18_19/xml_header_tsv_letter.tsv", "r", encoding="utf-8") as xml_tsv_file:
     with open("shortened_xml.tsv", "w", encoding="utf-8") as shortened_xml_tsv_file:
         shortened_xml_writer = csv.writer(shortened_xml_tsv_file, delimiter="\t")
         xml_tsv_reader = csv.reader(xml_tsv_file, delimiter="\t")
@@ -29,7 +29,7 @@ with open("/home/eltedh/PycharmProjects/XML-processing/AJOM17_18_19/output.tsv",
                     print("DUPLUM: ", itidata_id_list, row[11])
 
 # Compare itidata items sparql export and xml based tsv
-with open("shortened_xml.tsv", "r", encoding="utf-8") as shortened_xml_tsv_file:
+with (open("shortened_xml.tsv", "r", encoding="utf-8") as shortened_xml_tsv_file):
     with open("AJOM17_error_list.tsv", "w", encoding="utf-8") as AJOM17_error_list_file:
         shortened_xml_reader = csv.reader(shortened_xml_tsv_file, delimiter="\t")
         AJOM17_error_list_file_writer = csv.writer(AJOM17_error_list_file, delimiter="\t")
@@ -102,9 +102,24 @@ with open("shortened_xml.tsv", "r", encoding="utf-8") as shortened_xml_tsv_file:
 
             if normalize(related_item_label) != normalize(label_hu):
                 error_row_letter.append(f'CHECK "RELATED TO" (P129) LABEL MISMACH "{related_item_label}"')
-                visualize_diff()
+                visualize_diff(normalize(related_item_label), normalize(label_hu))
 
-            # print(error_row)
+            # Publication date
+            publlication_date = []
+            if itidata_json["entities"][itidata_id]["claims"].get("P218"):
+                publlication_date.append("NO CREATION DATE (P218) IS NEEDED")
+            if not itidata_json["entities"][itidata_id]["claims"].get("P57"):
+                publlication_date.append("PUBLICATION DATE (P57) MISSING")
+            else:
+                if itidata_json["entities"][itidata_id]["claims"]["P57"][0]["mainsnak"]["datavalue"]["value"]["time"] != row[14].split("/")[0] and itidata_json["entities"][itidata_id]["claims"]["P57"][0]["mainsnak"]["datavalue"]["value"]["precision"] != row[14].split("/")[1]:
+                    publlication_date.append("PUBLICATION DATE (P57) INCORRECT")
+                    # print(itidata_json["entities"][itidata_id]["claims"]["P57"][0]["mainsnak"]["datavalue"]["value"])
+                    # print(row[14])
+            if len(publlication_date) > 0:
+                error_row_letter.append("; ".join(publlication_date))
+
+
+            print(error_row_letter)
             AJOM17_error_list_file_writer.writerow(error_row_letter)
 
             error_row_manuscript = []
