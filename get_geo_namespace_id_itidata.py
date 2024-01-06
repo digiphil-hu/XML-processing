@@ -179,6 +179,7 @@ def get_item_labels_from_itidata(item_id):
     # Return empty strings if an error occurred
     return "Unknown"
 
+
 def get_eng_hun_item_labels_from_itidata(item_id, what_do_yo_need):
 
     # Set the request parameters
