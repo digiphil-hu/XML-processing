@@ -122,6 +122,10 @@ def create_dictionary(soup, path):
 
     # Creation placeName
     place_name_manuscript = head.find('placeName')
+    if place_name_manuscript:
+        place_name_manuscript = normalize_whitespaces(place_name_manuscript.text)
+    else:
+        place_name_manuscript = "???"
 
 
     # Populate dictionary for manuscripts
@@ -134,7 +138,7 @@ def create_dictionary(soup, path):
     data_dict_manuscript['P7'] = sender_id
     data_dict_manuscript['P80'] = recipient_id
     data_dict_manuscript['P41'] = "Q26"
-    data_dict_manuscript['P85'] =
+    data_dict_manuscript['P85'] = place_name_manuscript
 
 
     write_to_csv(data_dict_manuscript, 'xml_header_tsv_manuscript.tsv')

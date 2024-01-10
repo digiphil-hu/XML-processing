@@ -20,7 +20,7 @@ counter_empty_koha_auth = 0
 for parsed, path in get_filenames(folder_list):
     # new_path = "/home/eltedh/PycharmProjects/XML-processing/AJOM17_18_19/AJOM_itidata/XML/" + path.split("/")[-1]
     print(path)
-    for idno_tag in parsed.find_all('idno', {'type': 'KOHA_GEO'}):
+    for idno_tag in parsed.find_all('idno', {'type': 'KOHA_AUTH'}):
         if idno_tag.text:
             idno_text = re.sub(r'\D', '', idno_tag.text)
             if idno_text not in koha_itidata_dict:
@@ -29,7 +29,7 @@ for parsed, path in get_filenames(folder_list):
                 idno_tag.string = koha_itidata_dict[idno_text]
                 idno_tag['type'] = 'ITIdata'
                 counter_itidata += 1
-    for idno_tag in parsed.find_all('idno', {'type': 'KOHA_GEO'}):
+    for idno_tag in parsed.find_all('idno', {'type': 'KOHA_AUTH'}):
         del idno_tag.attrs['type']
         counter_empty_koha_auth += 1
     # with open(path, "w", encoding="utf-8") as outfile:
