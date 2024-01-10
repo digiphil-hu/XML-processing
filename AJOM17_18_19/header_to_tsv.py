@@ -32,14 +32,14 @@ def create_dictionary(soup, path):
     title = normalize_allcaps(title)
     elveszett = " [Elveszett]," if (soup.find('term', string='Elveszett.')
                                     or soup.find('supplied', string="Elveszett")) else ","
-    place_name = get_text_with_supplied(head, 'placeName')
-    place_name = normalize_whitespaces(place_name)
-    if place_name != "":
-        place_name += ", "
+    place_name_letter = get_text_with_supplied(head, 'placeName')
+    place_name_letter = normalize_whitespaces(place_name_letter)
+    if place_name_letter != "":
+        place_name_letter += ", "
     date = get_text_with_supplied(head, 'date')
     date = normalize_whitespaces(date)
 
-    lhu_value = f"{title}{elveszett} {place_name}{date}"
+    lhu_value = f"{title}{elveszett} {place_name_letter}{date}"
     # print(lhu_value, path)
 
     # Sender and receiver namespace identity
@@ -120,6 +120,9 @@ def create_dictionary(soup, path):
             institution_abr = "Unknown"
     manuscript_description_hu = sender + ", kézirat, " + institution_abr
 
+    # Creation placeName
+    place_name_manuscript = head.find('placeName')
+
 
     # Populate dictionary for manuscripts
     data_dict_manuscript['qid'] = ""
@@ -128,6 +131,11 @@ def create_dictionary(soup, path):
     data_dict_manuscript['Len'] = lhu_value
     data_dict_manuscript['Dhu'] = manuscript_description_hu
     data_dict_manuscript['Den'] = manuscript_description_hu.replace("elveszett", "lost").replace("kézirat", "manuscript")
+    data_dict_manuscript['P7'] = sender_id
+    data_dict_manuscript['P80'] = recipient_id
+    data_dict_manuscript['P41'] = "Q26"
+    data_dict_manuscript['P85'] =
+
 
     write_to_csv(data_dict_manuscript, 'xml_header_tsv_manuscript.tsv')
 

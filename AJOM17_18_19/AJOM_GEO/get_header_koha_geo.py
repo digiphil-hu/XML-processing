@@ -5,6 +5,7 @@ from get_geo_namespace_id_itidata import get_itidata_subclasses_of_human_settlem
 from xml_methods import get_filenames
 import csv
 
+
 def get_koha_geo(soup, file):
     koha_geo_per_xml = set()
     for element in soup.teiHeader.find_all('note'):
@@ -29,7 +30,7 @@ if __name__ == '__main__':
     #     for item in (sorted(koha_geo_global)):
     #         print(item, file=outfile)
 
-    # Create a set from the subclass dictionarys
+    # Create a set from the subclass dictionaries
     wikidata_settlement_subclasses = get_subclasses_of_human_settlement()
     wikidata_subclass_set = set(item[0] for item in wikidata_settlement_subclasses)
 
