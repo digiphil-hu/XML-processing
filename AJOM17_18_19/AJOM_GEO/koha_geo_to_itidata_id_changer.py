@@ -33,6 +33,34 @@ for parsed, path in get_filenames(folder_list):
                         if AJOM_geo_dict[placename_string][0].strip() != "":
                             idno_tag["corresp"] = AJOM_geo_dict[placename_string][0]
                         idno_tag.string = AJOM_geo_dict[placename_string][1]
+                        idno_tag["type"] = "ITIdata"
                         placename.append(idno_tag)
-    with open(new_path + path.split("/")[-1], "w", encoding="utf-8") as f:
-        f.write(str(parsed))
+    for koha_geo_idno in parsed.teiHeader.find_all("idno", {"type": "KOHA_GEO"}):
+        if koha_geo_idno.string:
+            print(path, koha_geo_idno.string)
+        else:
+            if koha_geo_idno.get("corresp"):
+                koha_corresp = normalize_whitespaces(koha_geo_idno["corresp"])
+                if koha_corresp in AJOM_geo_dict:
+                    koha_geo_idno.string = AJOM_geo_dict[koha_corresp][1]
+                    koha_geo_idno["type"] = "ITIdata"
+                    if AJOM_geo_dict[koha_corresp][0].strip() != "":
+                        koha_geo_idno["corresp"] = AJOM_geo_dict[koha_corresp][0]
+                else:
+                    print(path, koha_geo_idno)
+    for koha_geo_idno in parsed.body.head.find_all("idno", {"type": "KOHA_GEO"}):
+        if koha_geo_idno.string:
+            print(path, koha_geo_idno.string)
+        else:
+            if koha_geo_idno.get("corresp"):
+                koha_corresp = normalize_whitespaces(koha_geo_idno["corresp"])
+                if koha_corresp in AJOM_geo_dict:
+                    koha_geo_idno.string = AJOM_geo_dict[koha_corresp][1]
+                    koha_geo_idno["type"] = "ITIdata"
+                    if AJOM_geo_dict[koha_corresp][0].strip() != "":
+                        koha_geo_idno["corresp"] = AJOM_geo_dict[koha_corresp][0]
+                else:
+                    print(koha_geo_idno["corresp"])
+
+    # with open(new_path + path.split("/")[-1], "w", encoding="utf-8") as f:
+    #     f.write(str(parsed))

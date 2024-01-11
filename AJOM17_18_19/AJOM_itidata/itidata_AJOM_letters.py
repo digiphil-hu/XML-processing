@@ -58,8 +58,8 @@ with (open("shortened_xml.tsv", "r", encoding="utf-8") as shortened_xml_tsv_file
 
             # Check Property - Value pairs:
             property_value_pairs = [("P1", 6),
-                                    # ("P7", 7),
-                                    # ("P80", 8),
+                                    ("P7", 7),
+                                    ("P80", 8),
                                     ("P41", 9),
                                     ("P44", 10),
                                     ]
