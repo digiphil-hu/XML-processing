@@ -118,6 +118,8 @@ def normalize_allcaps(input_str):
             else:
                 word = word.capitalize()
         word = re.sub(r"[Dd][Rr]\.", "Dr.", word)
+        word = re.sub(r"É[sS]", " és ", word)
+        word = word.replace("Üzenetváltása", "üzenetváltása")
         word_list.append(word)
     # normalized_words = [word.capitalize() if word.isalpha() else word for word in words]
     normalized_str = ' '.join(word_list)
