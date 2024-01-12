@@ -4,8 +4,9 @@ import csv
 
 from xml_methods import get_filenames, revert_persname, normalize_allcaps, normalize_whitespaces, write_to_csv
 
-with open("/home/eltedh/PycharmProjects/XML-processing/AJOM17_18_19/AJOM_itidata/itidata_query_manuscript_collection.csv",
-          "r", encoding="utf-8") as csvfile:
+with open(
+        "/home/eltedh/PycharmProjects/XML-processing/AJOM17_18_19/AJOM_itidata/itidata_query_manuscript_collection.csv",
+        "r", encoding="utf-8") as csvfile:
     csv_reader = csv.reader(csvfile, delimiter="\t")
     insitution_name_dict = {}
     for row in csv_reader:
@@ -26,7 +27,7 @@ def create_dictionary(soup, path):
 
     # Extract data for 'Lhu'
     head = soup.body.div.find('head')
-    for tag in head.find_all('note'): # Leave out placeName or date tags from note type critic
+    for tag in head.find_all('note'):  # Leave out placeName or date tags from note type critic
         tag.decompose()
     title = head.find('title').text
     title = normalize_allcaps(title)
@@ -43,27 +44,40 @@ def create_dictionary(soup, path):
     # print(lhu_value, path)
 
     # Sender and receiver namespace identity
-    sender_id_tag = soup.correspDesc.find("correspAction", attrs={"type": "sent"}).persName
-    if sender_id_tag and sender_id_tag.idno:
-        sender_id = sender_id_tag.idno.text
-    else:
-        sender_id = None
+    sender_id_list = []
+    sent_action = soup.profileDesc.find("correspAction", attrs={"type": "sent"})
+    if sent_action:
+        sender_name_list = sent_action.find_all('persName')
+        if len(sender_name_list) > 1:
+            print("More sender in: ", path)
+        for sender_name in sender_name_list:
+            if sender_name.idno:
+                sender_id_list.append(sender_name.idno.text)
+    sender_id = ";".join(sender_id_list)
 
-    recipient_id_tag = soup.correspDesc.find("correspAction", attrs={"type": "recieved"}).persName
-    if recipient_id_tag and recipient_id_tag.idno:
-        recipient_id = recipient_id_tag.idno.text
-    else:
-        recipient_id = None
+    recipient_id_list = []
+    recipient_action = soup.profileDesc.find("correspAction", attrs={"type": "recieved"})
+    if recipient_action:
+        recipient_name_list = recipient_action.find_all('persName')
+        if len(recipient_name_list) > 1:
+            print("More recipient in: ", path)
+        for recipient_name in recipient_name_list:
+            if recipient_name.idno:
+                recipient_id_list.append(recipient_name.idno.text)
+    recipient_id = ";".join(recipient_id_list)
 
     # Extract data for 'Dhu', 'Den'
     hu_desciption = []
     en_description = []
-    sender_tag = soup.correspDesc.find("correspAction", attrs={"type": "sent"})
-    if sender_tag and sender_id_tag and sender_id_tag.idno:
-        sender_tag.persName.idno.decompose()
-        sender = normalize_whitespaces(sender_tag.persName.text)
-    else:
-        sender = "Unknown sender"
+    senders = []
+    senders_en = []
+    if sent_action:
+        for sender_name in sent_action.find_all('persName'):
+            if sender_name.idno:
+                sender_name.idno.decompose()
+            senders.append(normalize_whitespaces(sender_name.text))
+        senders_en = (revert_persname(sender) for sender in senders)
+
     if "ajom17" in soup.find("publicationStmt").text:
         edition = "Arany János levelezése. (1857–1861), 2004"
         id_edition = "Q338268"
@@ -79,10 +93,11 @@ def create_dictionary(soup, path):
     else:
         edition = "Unknown edition"
         print(soup.publicationStmt.text)
-    hu_desciption.append(sender)
+
+    hu_desciption.append(" és ".join(senders))
     hu_desciption.append("levél")
     hu_desciption.append(edition)
-    en_description.append(revert_persname(sender))
+    en_description.append(" and ".join(senders_en))
     en_description.append("letter")
     en_description.append(edition)
 
@@ -118,7 +133,8 @@ def create_dictionary(soup, path):
         else:
             # print("Unknown insitution name: ", institution)
             institution_abr = "Unknown"
-    manuscript_description_hu = sender + ", kézirat, " + institution_abr
+    manuscript_description_hu = " és ".join(senders) + ", kézirat, " + institution_abr
+    manuscript_description_en = " and ".join(senders_en) + ", manuscript" + institution_abr
 
     # Creation placeName
     place_name_manuscript = head.find('placeName')
@@ -127,19 +143,18 @@ def create_dictionary(soup, path):
     else:
         place_name_manuscript = "???"
 
-
     # Populate dictionary for manuscripts
     data_dict_manuscript['qid'] = ""
     data_dict_manuscript['P1'] = "Q15"
     data_dict_manuscript['Lhu'] = lhu_value
     data_dict_manuscript['Len'] = lhu_value
     data_dict_manuscript['Dhu'] = manuscript_description_hu
-    data_dict_manuscript['Den'] = manuscript_description_hu.replace("elveszett", "lost").replace("kézirat", "manuscript")
+    data_dict_manuscript['Den'] = manuscript_description_hu.replace("elveszett", "lost").replace("kézirat",
+                                                                                                 "manuscript")
     data_dict_manuscript['P7'] = sender_id
     data_dict_manuscript['P80'] = recipient_id
     data_dict_manuscript['P41'] = "Q26"
     data_dict_manuscript['P85'] = place_name_manuscript
-
 
     write_to_csv(data_dict_manuscript, 'xml_header_tsv_manuscript.tsv')
 
@@ -188,5 +203,3 @@ with open('xml_header_tsv_letter.tsv', "w", encoding="utf8") as f1:
         # f.write("\t".join(header_list) + "\n" + "\n")
 for parsed, path in get_filenames(folder_list):
     create_dictionary(parsed, path)
-
-

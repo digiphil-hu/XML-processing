@@ -62,6 +62,29 @@ def visualize_diff(string_one, string_two):
     print(''.join(highlighted_diff))
 
 
+def find_difference_strings(str1, str2):
+    # Find the longest common substring
+    matcher = difflib.SequenceMatcher(None, str1, str2)
+    match = matcher.find_longest_match(0, len(str1), 0, len(str2))
+
+    # If there is a common substring
+    if match.size > 4:
+        # Extract the common substring
+        common_substring = str1[match.a : match.a + match.size]
+
+        # Delete the common substring and repeat the process
+        str1 = str1.replace(common_substring, "")
+        str2 = str2.replace(common_substring, "")
+
+        # Recursively find the remaining differences
+        remaining_str1, remaining_str2 = find_difference_strings(str1, str2)
+
+        return remaining_str1, remaining_str2
+
+    # If there is no common substring, return the original strings
+    return str1, str2
+
+
 def revert_persname(name):
     # normalize whitespaces
     name = normalize_whitespaces(name)
