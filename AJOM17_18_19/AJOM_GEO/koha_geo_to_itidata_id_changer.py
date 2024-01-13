@@ -34,8 +34,7 @@ for parsed, path in get_filenames(folder_list):
                         idno_tag.string = AJOM_geo_dict[placename_string][1]
                         idno_tag["type"] = "ITIdata"
                         placename.append(idno_tag)
-    for note_tag in parsed.teiHeader.find_all('note'):
-        note_tag.decompose()
+
     for koha_geo_idno in parsed.teiHeader.find_all("idno", {"type": "KOHA_GEO"}):
         if koha_geo_idno.string:
             print(path, koha_geo_idno.string)
