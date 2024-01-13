@@ -11,8 +11,8 @@ with open(
     insitution_name_dict = {}
     for row in csv_reader:
         insitution_name_dict[row[1]] = (row[0], row[2])
-for key, value in insitution_name_dict.items():
-    print(key, value)
+# for key, value in insitution_name_dict.items():
+#     print(key, value)
 
 
 def create_dictionary(soup, path):
@@ -24,7 +24,6 @@ def create_dictionary(soup, path):
     """
     data_dict_letter = {}
     data_dict_manuscript = {}
-
     # Extract data for 'Lhu'
     head = soup.body.div.find('head')
     for tag in head.find_all('note'):  # Leave out placeName or date tags from note type critic
@@ -37,6 +36,13 @@ def create_dictionary(soup, path):
     place_name_letter = normalize_whitespaces(place_name_letter)
     if place_name_letter != "":
         place_name_letter += ", "
+    try:
+        if head.date.next_sibling and head.date.next_sibling.name is None:
+            pass
+            print(head.date.next_sibling.name, "///", normalize_whitespaces(head.date.next_sibling.text), "///", path.split("/")[-1])
+    except AttributeError:
+        pass
+        # print("No date in <head>", path)
     date = get_text_with_supplied(head, 'date')
     date = normalize_whitespaces(date)
 
@@ -49,10 +55,17 @@ def create_dictionary(soup, path):
     if sent_action:
         sender_name_list = sent_action.find_all('persName')
         if len(sender_name_list) > 1:
-            print("More sender in: ", path)
+            # print("More sender in: ", path)
+            pass
         for sender_name in sender_name_list:
             if sender_name.idno:
                 sender_id_list.append(sender_name.idno.text)
+                if sender_name.idno.string is None:
+                    pass
+                    # print("No sender idno value: ", path, sender_name.parent.name, sender_name)
+            else:
+                pass
+                # print("No sender idno: ", path)
     sender_id = ";".join(sender_id_list)
 
     recipient_id_list = []
@@ -60,10 +73,17 @@ def create_dictionary(soup, path):
     if recipient_action:
         recipient_name_list = recipient_action.find_all('persName')
         if len(recipient_name_list) > 1:
-            print("More recipient in: ", path)
+            # print("More recipient in: ", path)
+            pass
         for recipient_name in recipient_name_list:
             if recipient_name.idno:
                 recipient_id_list.append(recipient_name.idno.text)
+                if recipient_name.idno.string is None:
+                    pass
+                    # print("No recipient idno string: ", path, recipient_name.parent.name, recipient_name)
+            else:
+                pass
+                # print("No recipient idno: ", path)
     recipient_id = ";".join(recipient_id_list)
 
     # Extract data for 'Dhu', 'Den'
