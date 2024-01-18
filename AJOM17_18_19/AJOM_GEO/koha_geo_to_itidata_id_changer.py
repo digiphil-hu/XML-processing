@@ -18,6 +18,17 @@ with open("ajom_header_geonames_itidata.csv", "r", encoding="utf-8") as csvfile:
 for parsed, path in get_filenames(folder_list):
     new_path = "/home/eltedh/PycharmProjects/XML-processing/AJOM17_18_19/AJOM_GEO/XML/"
 
+    # Check incorrect persNames
+    for persname in parsed.find_all("persName"):
+        persname_text = normalize_whitespaces(persname.text).replace("?", "").strip()
+        if persname_text in AJOM_geo_dict:
+            print(path, persname)
+        if persname.idno:
+            if persname.idno.get("corresp"):
+                persname_corresp = persname.find("idno").get("corresp")
+                if persname_corresp in AJOM_geo_dict:
+                    print(path, persname)
+
     # Let's delete empty idno's
     for idno in parsed.find_all("idno", {"type": "KOHA_GEO"}):
         del idno["type"]
