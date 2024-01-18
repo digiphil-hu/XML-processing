@@ -144,3 +144,24 @@ def write_to_csv(data_dict, output_file):
     """
     with open(output_file, 'a', encoding='utf-8') as tsv_file:
         tsv_file.write('\t'.join([str(value) for value in data_dict.values()]) + '\n')
+
+
+def get_parent_tags(xml_segment):
+    """
+    Get a list of parent tag names for a given XML segment.
+
+    Parameters:
+    - xml_segment (BeautifulSoup): BeautifulSoup object representing the XML segment.
+
+    Returns:
+    - list: List of parent tag names.
+    """
+    parent_tags = []
+
+    # Start from the immediate parent and go upwards
+    parent_tag = xml_segment.parent
+    while parent_tag:
+        parent_tags.insert(0, parent_tag.name)
+        parent_tag = parent_tag.parent
+
+    return parent_tags
