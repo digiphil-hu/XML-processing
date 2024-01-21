@@ -10,7 +10,7 @@ with open(
     csv_reader = csv.reader(csvfile, delimiter="\t")
     insitution_name_dict = {}
     for row in csv_reader:
-        insitution_name_dict[row[1]] = (row[0], row[2])
+        insitution_name_dict[row[2]] = (row[0], row[3])
 # for key, value in insitution_name_dict.items():
 #     print(key, value)
 
@@ -39,7 +39,7 @@ def create_dictionary(soup, path):
     try:
         if head.date.next_sibling and head.date.next_sibling.name is None:
             pass
-            print(head.date.next_sibling.name, "///", normalize_whitespaces(head.date.next_sibling.text), "///", path.split("/")[-1])
+            # print(head.date.next_sibling.name, "///", normalize_whitespaces(head.date.next_sibling.text), "///", path.split("/")[-1])
     except AttributeError:
         pass
         # print("No date in <head>", path)
@@ -54,6 +54,7 @@ def create_dictionary(soup, path):
     sent_action = soup.profileDesc.find("correspAction", attrs={"type": "sent"})
     if sent_action:
         sender_name_list = sent_action.find_all('persName')
+        #Chech if there are more then one sender.
         if len(sender_name_list) > 1:
             # print("More sender in: ", path)
             pass
@@ -72,6 +73,7 @@ def create_dictionary(soup, path):
     recipient_action = soup.profileDesc.find("correspAction", attrs={"type": "recieved"})
     if recipient_action:
         recipient_name_list = recipient_action.find_all('persName')
+        # Check if there are multiple recievers
         if len(recipient_name_list) > 1:
             # print("More recipient in: ", path)
             pass
@@ -96,7 +98,7 @@ def create_dictionary(soup, path):
             if sender_name.idno:
                 sender_name.idno.decompose()
             senders.append(normalize_whitespaces(sender_name.text))
-        senders_en = (revert_persname(sender) for sender in senders)
+        senders_en = [revert_persname(sender) for sender in senders]
 
     if "ajom17" in soup.find("publicationStmt").text:
         edition = "Arany János levelezése. (1857–1861), 2004"
@@ -144,24 +146,26 @@ def create_dictionary(soup, path):
     write_to_csv(data_dict_letter, 'xml_header_tsv_letter.tsv')
 
     # Manuscript description
-    if soup.msDesc.msIdentifier.find('institution') is None:
-        institution_abr = "elveszett"
-    else:
-        institution = soup.msDesc.msIdentifier.find('institution').text.strip()
-        if institution in insitution_name_dict:
-            institution_abr = insitution_name_dict[institution][1]
-        else:
-            # print("Unknown insitution name: ", institution)
-            institution_abr = "Unknown"
-    manuscript_description_hu = " és ".join(senders) + ", kézirat, " + institution_abr
-    manuscript_description_en = " and ".join(senders_en) + ", manuscript" + institution_abr
+    institution_abr = ["lost"]
+    if soup.msDesc.msIdentifier.find('institution') is not None:
+        institution_abr = []
+        if soup.msDesc.msIdentifier.find('institution').text.strip() != "":
+            institutions = soup.msDesc.msIdentifier.institution.text.split(";")
+            for institution in institutions:
+                institution = normalize_whitespaces(institution).lstrip()
+                if institution in insitution_name_dict:
+                    institution_abr.append(insitution_name_dict[institution][1])
+                else:
+                    print("Unknown insitution name: ", institution)
+    manuscript_description_hu = " és ".join(senders) + ", kézirat, " + " – ".join(institution_abr)
+    manuscript_description_en = " and ".join(senders_en) + ", manuscript, " + " – ".join(institution_abr)
 
     # Creation placeName
-    place_name_manuscript = head.find('placeName')
+    place_name_manuscript = soup.creation.find('placeName')
     if place_name_manuscript:
-        place_name_manuscript = normalize_whitespaces(place_name_manuscript.text)
+        place_name_manuscript = normalize_whitespaces(place_name_manuscript.idno.text)
     else:
-        place_name_manuscript = "???"
+        place_name_manuscript = "Unknown"
 
     # Populate dictionary for manuscripts
     data_dict_manuscript['qid'] = ""
@@ -169,8 +173,7 @@ def create_dictionary(soup, path):
     data_dict_manuscript['Lhu'] = lhu_value
     data_dict_manuscript['Len'] = lhu_value
     data_dict_manuscript['Dhu'] = manuscript_description_hu
-    data_dict_manuscript['Den'] = manuscript_description_hu.replace("elveszett", "lost").replace("kézirat",
-                                                                                                 "manuscript")
+    data_dict_manuscript['Den'] = manuscript_description_en
     data_dict_manuscript['P7'] = sender_id
     data_dict_manuscript['P80'] = recipient_id
     data_dict_manuscript['P41'] = "Q26"
@@ -192,10 +195,11 @@ def get_text_with_supplied(soup, tag_name):
     """
     tag = soup.find(tag_name)
     if tag:
+        tag_text = [text for text in tag.stripped_strings]
         if tag.parent.name == 'supplied':
-            return f"[{tag.text.strip()}]"
+            return f"[{tag_text[0].strip()}]"
         else:
-            return tag.text.strip()
+            return tag_text[0].strip()
     return ""
 
 
