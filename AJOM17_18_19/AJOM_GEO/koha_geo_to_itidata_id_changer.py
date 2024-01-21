@@ -12,7 +12,8 @@ with open("ajom_header_geonames_itidata.csv", "r", encoding="utf-8") as csvfile:
     reader = csv.reader(csvfile, delimiter="\t")
     # header = next(reader)
     for row in reader:
-        AJOM_geo_dict[row[0]] = (row[1], row[2])
+        if row[0] != "":
+            AJOM_geo_dict[row[0]] = (row[1], row[2])
 
 missing_places = set()
 for parsed, path in get_filenames(folder_list):
@@ -63,7 +64,7 @@ for parsed, path in get_filenames(folder_list):
             placename_text = normalize_whitespaces(placename.text).replace("?", "").strip()
             # if "p" not in parent_tag_set and "note" not in parent_tag_set:
             if placename_text not in AJOM_geo_dict:
-                # print(path, placename.parent.name, placename)
+                print(path, placename.parent.name, placename)
                 missing_places.add(placename.text)
             else:
                 idno_tag = parsed.new_tag('idno')
@@ -103,10 +104,11 @@ for parsed, path in get_filenames(folder_list):
             idno_tag["type"] = "ITIdata"
             placename.append(idno_tag)
 
-    with open(new_path + path.split("/")[-1], "w", encoding="utf-8") as f:
+    # with open(new_path + path.split("/")[-1], "w", encoding="utf-8") as f:
+    #     f.write(prettify_soup(parsed))
+
+    with open(path, "w", encoding="utf-8") as f:
         f.write(prettify_soup(parsed))
 
-    # with open(path, "w", encoding="utf-8") as f:
-    #     f.write(prettify_soup(parsed))
 # for element in sorted(missing_places):
 #     print(element)
