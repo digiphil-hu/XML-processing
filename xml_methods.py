@@ -165,3 +165,20 @@ def get_parent_tags(xml_segment):
         parent_tag = parent_tag.parent
 
     return parent_tags
+
+
+def format_date(input_date):
+    date_parts = input_date.split('-')
+
+    # If only year is provided
+    if len(date_parts) == 1:
+        return f"{date_parts[0]}-00-00"
+    # If year and month are provided
+    elif len(date_parts) == 2:
+        return f"{date_parts[0]}-{date_parts[1]}-00"
+    # If year, month, and day are provided
+    elif len(date_parts) == 3:
+        return f"{date_parts[0]}-{date_parts[1]}-{date_parts[2]}"
+    # If the input format is not recognize
+    else:
+        return "Invalid date format"

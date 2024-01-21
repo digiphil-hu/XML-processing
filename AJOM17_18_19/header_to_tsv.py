@@ -2,7 +2,8 @@
 # and formats them to be uploaded to a wikibase instance
 import csv
 
-from xml_methods import get_filenames, revert_persname, normalize_allcaps, normalize_whitespaces, write_to_csv
+from xml_methods import get_filenames, revert_persname, normalize_allcaps, normalize_whitespaces, write_to_csv, \
+    format_date
 
 with open(
         "/home/eltedh/PycharmProjects/XML-processing/AJOM17_18_19/AJOM_itidata/itidata_query_manuscript_collection.csv",
@@ -145,20 +146,32 @@ def create_dictionary(soup, path):
 
     write_to_csv(data_dict_letter, 'xml_header_tsv_letter.tsv')
 
-    # Manuscript description
-    institution_abr = ["lost"]
+    # Manuscript description, manuscript institution, institution id
+    institution_abbr = []
+    institution_id = []
     if soup.msDesc.msIdentifier.find('institution') is not None:
-        institution_abr = []
         if soup.msDesc.msIdentifier.find('institution').text.strip() != "":
             institutions = soup.msDesc.msIdentifier.institution.text.split(";")
             for institution in institutions:
                 institution = normalize_whitespaces(institution).lstrip()
                 if institution in insitution_name_dict:
-                    institution_abr.append(insitution_name_dict[institution][1])
+                    institution_abbr.append(insitution_name_dict[institution][1])
+                    institution_id.append(insitution_name_dict[institution][0].split("/")[-1])
                 else:
                     print("Unknown insitution name: ", institution)
-    manuscript_description_hu = " és ".join(senders) + ", kézirat, " + " – ".join(institution_abr)
-    manuscript_description_en = " and ".join(senders_en) + ", manuscript, " + " – ".join(institution_abr)
+    abbr_hu = " – ".join(institution_abbr) if len(institution_abbr) > 0 else "elveszett"
+    abbr_en = " – ".join(institution_abbr) if len(institution_abbr) > 0 else "lost"
+    manuscript_description_hu = " és ".join(senders) + ", kézirat, " + abbr_hu
+    manuscript_description_en = " and ".join(senders_en) + ", manuscript, " + abbr_en
+
+    # Manuscript institution record id
+    record_id = ""
+    itidata_id = ""
+    for idno in parsed.msIdentifier.find_all("idno"):
+        if idno.get("type") == "ITIdata" or idno.get("type") == "ITIData":
+            itidata_id = normalize_whitespaces(idno.text)
+        else:
+            record_id = normalize_whitespaces(idno.text)
 
     # Creation placeName
     place_name_manuscript = soup.creation.find('placeName')
@@ -167,8 +180,26 @@ def create_dictionary(soup, path):
     else:
         place_name_manuscript = "Unknown"
 
+    # Creation date
+    exact_date, from_date, to_date = "", "", ""
+    if parsed.creation.find("date"):
+        if parsed.creation.find("date").get("when"):
+            exact_date = format_date(parsed.creation.find("date").get("when"))
+        if parsed.creation.find("date").get("from"):
+            from_date = format_date(parsed.creation.find("date").get("from"))
+        if parsed.creation.find("date").get("to"):
+            to_date = format_date(parsed.creation.find("date").get("to"))
+        if exact_date == "Invalid date format" or from_date == "Invalid date format" or exact_date == "Invalid date format":
+            print("Invalid date: ", path)
+    if exact_date != "":
+        print("Exact date: ", exact_date)
+    if from_date != "":
+        print("From date: ", from_date)
+    if to_date != "":
+        print("To date: ", to_date)
+
     # Populate dictionary for manuscripts
-    data_dict_manuscript['qid'] = ""
+    data_dict_manuscript['qid'] = itidata_id
     data_dict_manuscript['P1'] = "Q15"
     data_dict_manuscript['Lhu'] = lhu_value
     data_dict_manuscript['Len'] = lhu_value
@@ -178,6 +209,9 @@ def create_dictionary(soup, path):
     data_dict_manuscript['P80'] = recipient_id
     data_dict_manuscript['P41'] = "Q26"
     data_dict_manuscript['P85'] = place_name_manuscript
+    data_dict_manuscript['P203'] = ";".join(institution_id)
+    data_dict_manuscript['P204'] = record_id
+    data_dict_manuscript['P2018'] = exact_date if exact_date != "" else from_date + "--" + to_date
 
     write_to_csv(data_dict_manuscript, 'xml_header_tsv_manuscript.tsv')
 
