@@ -62,10 +62,10 @@ with (open("shortened_xml.tsv", "r", encoding="utf-8") as shortened_xml_tsv_file
             itidata_json_description_en = compare_text_normalize(row[5])
             if tsv_description_xml_hu != itidata_json_description_hu:
                 error_row_letter.append(f'CHECK DESCRIPTION @hu:'
-                                        f'"{find_difference_strings(tsv_description_xml_hu, itidata_json_description_hu)}"')
+                                        f'{find_difference_strings(tsv_description_xml_hu, itidata_json_description_hu)}')
             if tsv_descpiptions_xml_en != itidata_json_description_en:
                 error_row_letter.append(f'CHECK DESCRIPTION @en: '
-                                        f'"{find_difference_strings(tsv_descpiptions_xml_en, itidata_json_description_en)}"')
+                                        f'{find_difference_strings(tsv_descpiptions_xml_en, itidata_json_description_en)}')
 
             # Check Property - Value pairs:
             property_value_pairs = [("P1", 6),
@@ -79,7 +79,7 @@ with (open("shortened_xml.tsv", "r", encoding="utf-8") as shortened_xml_tsv_file
                 # print(pair[0], row[pair[1]])
                 try:
                     if itidata_json["entities"][itidata_id]["claims"][pair[0]][0]["mainsnak"]["datavalue"]["value"]["id"] != row[pair[1]]:
-                        error_row_letter.append(f'CHECK {pair[0]}: {row[pair[1]]}')
+                        error_row_letter.append(f'CHECK {pair[0]}: (ITIdata: {itidata_json["entities"][itidata_id]["claims"][pair[0]][0]["mainsnak"]["datavalue"]["value"]["id"]}, XML: {row[pair[1]]})')
                 except KeyError:
                     error_row_letter.append(f'CHECK {pair[0]}: {row[pair[1]]}')
 
@@ -138,5 +138,4 @@ with (open("shortened_xml.tsv", "r", encoding="utf-8") as shortened_xml_tsv_file
 
             print(error_row_letter)
             AJOM17_error_list_file_writer.writerow(error_row_letter)
-
             error_row_manuscript = []

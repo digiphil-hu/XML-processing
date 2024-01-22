@@ -25,6 +25,7 @@ def create_dictionary(soup, path):
     """
     data_dict_letter = {}
     data_dict_manuscript = {}
+
     # Extract data for 'Lhu'
     head = soup.body.div.find('head')
     for tag in head.find_all('note'):  # Leave out placeName or date tags from note type critic
@@ -33,18 +34,19 @@ def create_dictionary(soup, path):
     title = normalize_allcaps(title)
     elveszett = " [Elveszett]," if (soup.find('term', string='Elveszett.')
                                     or soup.find('supplied', string="Elveszett")) else ","
-    place_name_letter = get_text_with_supplied(head, 'placeName')
+    place_name_letter = get_text_with_supplied(head, 'placeName', children=False)
     place_name_letter = normalize_whitespaces(place_name_letter)
     if place_name_letter != "":
         place_name_letter += ", "
     try:
         if head.date.next_sibling and head.date.next_sibling.name is None:
             pass
-            # print(head.date.next_sibling.name, "///", normalize_whitespaces(head.date.next_sibling.text), "///", path.split("/")[-1])
+            if head.date.next_sibling.text.replace(r"\s", "") != "":
+                print(head.date.next_sibling.name, "///", normalize_whitespaces(head.date.next_sibling.text), "///", path.split("/")[-1])
     except AttributeError:
         pass
         # print("No date in <head>", path)
-    date = get_text_with_supplied(head, 'date')
+    date = get_text_with_supplied(head, 'date', children=True)
     date = normalize_whitespaces(date)
 
     lhu_value = f"{title}{elveszett} {place_name_letter}{date}"
@@ -191,12 +193,12 @@ def create_dictionary(soup, path):
             to_date = format_date(parsed.creation.find("date").get("to"))
         if exact_date == "Invalid date format" or from_date == "Invalid date format" or exact_date == "Invalid date format":
             print("Invalid date: ", path)
-    if exact_date != "":
-        print("Exact date: ", exact_date)
-    if from_date != "":
-        print("From date: ", from_date)
-    if to_date != "":
-        print("To date: ", to_date)
+    # if exact_date != "":
+    #     print("Exact date: ", exact_date)
+    # if from_date != "":
+    #     print("From date: ", from_date)
+    # if to_date != "":
+    #     print("To date: ", to_date)
 
     # Populate dictionary for manuscripts
     data_dict_manuscript['qid'] = itidata_id
@@ -216,24 +218,24 @@ def create_dictionary(soup, path):
     write_to_csv(data_dict_manuscript, 'xml_header_tsv_manuscript.tsv')
 
 
-def get_text_with_supplied(soup, tag_name):
+def get_text_with_supplied(soup, tag_name, children):
     """
     Gets the text value for the given tag, and adds '[' and ']' if it is under the 'supplied' tag.
-
-    Parameters:
-    - soup (BeautifulSoup): BeautifulSoup object representing the parsed XML.
-    - tag_name (str): Name of the XML tag to extract.
-
-    Returns:
-    - str: Text value with optional '[' and ']' based on 'supplied' tag.
+    If the supplied text is a child, '[' and ']' are added
     """
     tag = soup.find(tag_name)
     if tag:
-        tag_text = [text for text in tag.stripped_strings]
-        if tag.parent.name == 'supplied':
-            return f"[{tag_text[0].strip()}]"
+        for orig_tag in tag.find_all('orig'):
+            orig_tag.decompose()
+        for supplied_tag in tag.find_all('supplied'):
+            supplied_tag.string = "[" + supplied_tag.text + "]"
+            supplied_tag.unwrap()
+        tag_text_no_child = [text for text in tag.stripped_strings]
+        tag_text_with_child = tag.text
+        if tag.parent.name == 'supplied' or tag.parent.parent.name == 'supplied':
+            return f"[{tag_text_with_child.strip()}]" if children else f"[{tag_text_no_child[0].strip()}]"
         else:
-            return tag_text[0].strip()
+            return tag_text_with_child.strip() if children else tag_text_no_child[0].strip()
     return ""
 
 
