@@ -41,8 +41,8 @@ def create_dictionary(soup, path):
     try:
         if head.date.next_sibling and head.date.next_sibling.name is None:
             pass
-            if head.date.next_sibling.text.replace(r"\s", "") != "":
-                print(head.date.next_sibling.name, "///", normalize_whitespaces(head.date.next_sibling.text), "///", path.split("/")[-1])
+            # if head.date.next_sibling.text.replace(r"\s", "") != "":
+            #     print(head.date.next_sibling.name, "///", normalize_whitespaces(head.date.next_sibling.text), "///", path.split("/")[-1])
     except AttributeError:
         pass
         # print("No date in <head>", path)
@@ -225,8 +225,12 @@ def get_text_with_supplied(soup, tag_name, children):
     """
     tag = soup.find(tag_name)
     if tag:
-        for orig_tag in tag.find_all('orig'):
-            orig_tag.decompose()
+        tag_to_delete = ["orig", "del"]
+        for del_tag in tag.find_all(element for element in tag_to_delete):
+            del_tag.decompose()
+        for add_tag in tag.find_all("add"):
+            # print(add_tag.string, add_tag.parent.name, path)
+            add_tag.unwrap()
         for supplied_tag in tag.find_all('supplied'):
             supplied_tag.string = "[" + supplied_tag.text + "]"
             supplied_tag.unwrap()

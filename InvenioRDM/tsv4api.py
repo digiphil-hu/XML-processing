@@ -159,7 +159,7 @@ def tsv_from_xml(parsed_xml, xml_path):
     # Alternate identifiers
     tsv_dict['Alternate Identifiers'] = [[("20.500.14368/" + PID), "Handle"]]
 
-    # Related works
+    # Related works #TODO GitHub repo name from XML
     github_file_link = parsed_xml.publicationStmt.find('ref', {'target': True})['target']
     DOI = parsed_xml.find('idno', {'type': 'DOI'}).text.strip()
     idno = parsed_xml.sourceDesc.bibl.find('idno', {'type': 'ITIdata'}, recursive=False)
