@@ -5,6 +5,7 @@ import csv
 from xml_methods import get_filenames, revert_persname, normalize_allcaps, normalize_whitespaces, write_to_csv, \
     format_date
 
+# Import institution names from ITIdata from csv made by SPARQL query.
 with open(
         "/home/eltedh/PycharmProjects/XML-processing/AJOM17_18_19/AJOM_itidata/itidata_query_manuscript_collection.csv",
         "r", encoding="utf-8") as csvfile:
@@ -17,12 +18,7 @@ with open(
 
 
 def create_dictionary(soup, path):
-    """
-    Creates a dictionary with keys 'Lhu' and 'Len' based on the given BeautifulSoup object.
 
-    Parameters:
-    - soup (BeautifulSoup): BeautifulSoup object representing the parsed XML.
-    """
     data_dict_letter = {}
     data_dict_manuscript = {}
 
@@ -32,8 +28,7 @@ def create_dictionary(soup, path):
         tag.decompose()
     title = head.find('title').text
     title = normalize_allcaps(title)
-    elveszett = " [Elveszett]," if (soup.find('term', string='Elveszett.')
-                                    or soup.find('supplied', string="Elveszett")) else ","
+    elveszett = " [Elveszett]," if soup.find('supplied', string="Elveszett") else ","
     place_name_letter = get_text_with_supplied(head, 'placeName', children=False)
     place_name_letter = normalize_whitespaces(place_name_letter)
     if place_name_letter != "":
@@ -57,7 +52,7 @@ def create_dictionary(soup, path):
     sent_action = soup.profileDesc.find("correspAction", attrs={"type": "sent"})
     if sent_action:
         sender_name_list = sent_action.find_all('persName')
-        #Chech if there are more then one sender.
+        # Chech if there are more then one sender.
         if len(sender_name_list) > 1:
             # print("More sender in: ", path)
             pass
@@ -132,6 +127,7 @@ def create_dictionary(soup, path):
 
     # Populate dictionary for letters
     data_dict_letter['qid'] = ""
+    data_dict_letter['filename'] = path.split("/")[-1]
     data_dict_letter['Lhu'] = lhu_value
     data_dict_letter['Len'] = lhu_value
     data_dict_letter['Dhu'] = ", ".join(hu_desciption)
@@ -202,6 +198,7 @@ def create_dictionary(soup, path):
 
     # Populate dictionary for manuscripts
     data_dict_manuscript['qid'] = itidata_id
+    data_dict_manuscript['filename'] = path.split("/")[-1]
     data_dict_manuscript['P1'] = "Q15"
     data_dict_manuscript['Lhu'] = lhu_value
     data_dict_manuscript['Len'] = lhu_value
@@ -243,7 +240,7 @@ def get_text_with_supplied(soup, tag_name, children):
     return ""
 
 
-# Example usage:
+# Usage
 folder_list = ["/home/eltedh/GitHub/migration-ajom-17",
                "/home/eltedh/GitHub/migration-ajom-18",
                "/home/eltedh/GitHub/migration-ajom-19"]

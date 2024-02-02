@@ -182,3 +182,11 @@ def format_date(input_date):
     # If the input format is not recognize
     else:
         return "Invalid date format"
+
+
+def check_list_index(index_number, list_to_check):
+    try:
+        list_to_check[index_number]
+    except IndexError:
+        list_to_check.insert(index_number, "")
+    return list_to_check

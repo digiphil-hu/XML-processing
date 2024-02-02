@@ -1,18 +1,22 @@
-#
-
 import csv
 import re
 from get_geo_namespace_id_itidata import get_eng_hun_item_labels_from_itidata
-from xml_methods import compare_text_normalize, normalize, visualize_diff, find_difference_strings
+from xml_methods import compare_text_normalize, normalize, visualize_diff, find_difference_strings, check_list_index
+from collections import Counter
 
-# Get the list of letters present in itidata
+# Get the list of letters present in itidata. Column[0] = item url, column[4] = letter id of the critical edition
+# SPARQL query: http://tinyurl.com/2dagung4 DON'T FORGET TO DELETE LETTERS FROM OTHER VOLUMES!!!
 with (open("itidata_ajom17_18_19_sparql_export.csv", "r", encoding="utf-8") as itidata_query_file):
     itidata_reader = csv.reader(itidata_query_file, delimiter="\t")
     letter_id_dict = dict()
     for row in itidata_reader:
         letter_id_dict[row[0].split("/")[-1]] = row[4].strip(".")
     if len(list(letter_id_dict.values())) != len(set(list(letter_id_dict.values()))):
-        print("DUPLUM!")
+        counter = Counter(letter_id_dict.values())
+        duplicates = [value for value, count in counter.items() if count > 1]
+        if duplicates:
+            print("DUPLUM!")
+            print("Duplicated values:", duplicates)
 
 # Single out letters present in itidata
 with open("/home/eltedh/PycharmProjects/XML-processing/AJOM17_18_19/xml_header_tsv_letter.tsv", "r",
@@ -21,100 +25,131 @@ with open("/home/eltedh/PycharmProjects/XML-processing/AJOM17_18_19/xml_header_t
         shortened_xml_writer = csv.writer(shortened_xml_tsv_file, delimiter="\t")
         xml_tsv_reader = csv.reader(xml_tsv_file, delimiter="\t")
         for row in xml_tsv_reader:
-            if row[11] in list(letter_id_dict.values()):
-                itidata_id_list = [key for key, value in letter_id_dict.items() if value == row[11]]
+            if row[12] in list(letter_id_dict.values()):
+                itidata_id_list = [key for key, value in letter_id_dict.items() if value == row[12]]
                 if len(itidata_id_list) == 1:
                     row.insert(0, itidata_id_list[0])
                     shortened_xml_writer.writerow(row)
                 else:
-                    print("DUPLUM: ", itidata_id_list, row[11])
+                    print("DUPLUM: ", itidata_id_list, row[12])
 
 # Compare itidata items sparql export and xml based tsv
+
 with (open("shortened_xml.tsv", "r", encoding="utf-8") as shortened_xml_tsv_file):
     with open("AJOM17_error_list.tsv", "w", encoding="utf-8") as AJOM17_error_list_file:
         shortened_xml_reader = csv.reader(shortened_xml_tsv_file, delimiter="\t")
         AJOM17_error_list_file_writer = csv.writer(AJOM17_error_list_file, delimiter="\t")
         for row in shortened_xml_reader:
+            index = 0
             error_row_letter = []
             itidata_id = row[0]
-            error_row_letter.insert(0, itidata_id)
+            error_row_letter.insert(index, itidata_id)
             itidata_json = get_eng_hun_item_labels_from_itidata(itidata_id, "json")
 
+            # Insert XML filename
+            index += 1
+            xml_filename = row[2]
+            print(xml_filename)
+            error_row_letter.insert(index, xml_filename)
+
+            # Check if itidata Hungarian and English lables are identical:
+            index += 1
             try:
-                # Check if itidata Hungarian and English lables are identical:
+
                 if itidata_json["entities"][itidata_id]["labels"]["hu"]["value"] != \
                         itidata_json["entities"][itidata_id]["labels"]["en"]["value"]:
-                    error_row_letter.append("ITIDATA LABEL @hu != @en")
+                    error_row_letter.insert(index, "ITIDATA LABEL @hu != @en")
             except KeyError:
-                error_row_letter.append("ITIDATA LABEL MISSING")
+                error_row_letter.insert(index, "ITIDATA LABEL MISSING")
+            check_list_index(index, error_row_letter)
 
             # Check if xml tsv lable and itidata lable are identical
-            tsv_xml_lhu = compare_text_normalize(row[2])
+            index += 1
+            tsv_xml_lhu = compare_text_normalize(row[3])
             itidata_json_lhu = compare_text_normalize(itidata_json["entities"][itidata_id]["labels"]["hu"]["value"])
             if compare_text_normalize(itidata_json["entities"][itidata_id]["labels"]["hu"]["value"]
-                                      ) != compare_text_normalize(row[2]):
-                error_row_letter.append(f'CHECK LABEL: {find_difference_strings(itidata_json_lhu, tsv_xml_lhu)}')
+                                      ) != compare_text_normalize(row[3]):
+                error_row_letter.insert(index, f'CHECK LABEL: {find_difference_strings(itidata_json_lhu, tsv_xml_lhu)}')
                 # print(find_difference_strings(itidata_json_lhu, tsv_xml_lhu))
+            check_list_index(index, error_row_letter)
 
             # Check if xml tsv description and itidata description are identical for English and Hungarian
+            index += 1
+            description_error = []
             try:
                 tsv_description_xml_hu = compare_text_normalize(
                     itidata_json["entities"][itidata_id]["descriptions"]["hu"]["value"])
                 tsv_descpiptions_xml_en = compare_text_normalize(
                     itidata_json["entities"][itidata_id]["descriptions"]["en"]["value"])
-                itidata_json_description_hu = compare_text_normalize(row[4])
-                itidata_json_description_en = compare_text_normalize(row[5])
+                itidata_json_description_hu = compare_text_normalize(row[5])
+                itidata_json_description_en = compare_text_normalize(row[6])
                 if tsv_description_xml_hu != itidata_json_description_hu:
-                    error_row_letter.append(f'CHECK DESCRIPTION @hu:'
+                    description_error.append(f'CHECK DESCRIPTION @hu:'
                                             f'{find_difference_strings(tsv_description_xml_hu, itidata_json_description_hu)}')
                 if tsv_descpiptions_xml_en != itidata_json_description_en:
-                    error_row_letter.append(f'CHECK DESCRIPTION @en: '
+                    description_error.append(f'CHECK DESCRIPTION @en: '
                                             f'{find_difference_strings(tsv_descpiptions_xml_en, itidata_json_description_en)}')
             except KeyError:
-                error_row_letter.append(f'CHECK DESCRIPTION, MISSING LABEL')
+                description_error.append(f'CHECK DESCRIPTION, MISSING LABEL')
+            if len(description_error) > 0:
+                error_row_letter.insert(index, "; ".join(description_error))
+            check_list_index(index, error_row_letter)
 
             # Check Property - Value pairs:
-            property_value_pairs = [("P1", 6),
-                                    ("P7", 7),
-                                    ("P80", 8),
-                                    ("P41", 9),
-                                    ("P44", 10),
+            property_value_pairs = [("P1", 7),
+                                    ("P7", 8),
+                                    ("P80", 9),
+                                    ("P41", 10),
+                                    ("P44", 11),
                                     ]
 
-            for pair in property_value_pairs:
+            for num, pair in enumerate(property_value_pairs):
                 # print(pair[0], row[pair[1]])
+                index += 1
                 try:
                     if itidata_json["entities"][itidata_id]["claims"][pair[0]][0]["mainsnak"]["datavalue"]["value"]["id"] != row[pair[1]]:
-                        error_row_letter.append(f'CHECK {pair[0]}: (ITIdata: {itidata_json["entities"][itidata_id]["claims"][pair[0]][0]["mainsnak"]["datavalue"]["value"]["id"]}, XML: {row[pair[1]]})')
+                        error_row_letter.insert(index, f'CHECK {pair[0]}: (ITIdata: {itidata_json["entities"][itidata_id]["claims"][pair[0]][0]["mainsnak"]["datavalue"]["value"]["id"]}, XML: {row[pair[1]]})')
                 except KeyError:
-                    error_row_letter.append(f'CHECK {pair[0]}: {row[pair[1]]}')
+                    error_row_letter.insert(index, f'CHECK {pair[0]}: {row[pair[1]]}')
+
+                check_list_index(index, error_row_letter)
 
             # Check page numbers
+            index += 1
             try:
                 page_number = itidata_json["entities"][itidata_id]["claims"]["P49"][0]["mainsnak"]["datavalue"]["value"]
                 pattern = r'^\d+([-–]\d+)?\.$'
                 if not bool(re.match(pattern, page_number)):
-                    error_row_letter.append("CHECK PAGE NUMBER (P49) SYNTAX.")
+                    error_row_letter.insert(index, "CHECK PAGE NUMBER (P49) SYNTAX.")
                     print(page_number)
             except KeyError:
-                error_row_letter.append("CHECK MISSING PAGE NUMBER (P49).")
+                error_row_letter.insert(index, "CHECK MISSING PAGE NUMBER (P49).")
+            check_list_index(index, error_row_letter)
 
             # Check letter numbers
+            index += 1
             if itidata_json["entities"][itidata_id]["claims"]["P106"][0]["mainsnak"]["datavalue"]["value"].strip(".") != \
-                    row[12]:
-                error_row_letter.append(f'CHECK "SERIES ORDINAL" (P106): "{row[12]}"')
-                print(row[12])
+                    row[13]:
+                error_row_letter.insert(index, f'CHECK "SERIES ORDINAL" (P106): "{row[13]}"')
+                print(row[13])
+            check_list_index(index, error_row_letter)
 
-            # # Check annotation
-            # pattern = r'^Kritikai jegyzetek:\s+\d+([-–]\d+)?\.$'
-            # annotation = itidata_json["entities"][itidata_id]["claims"]["P18"][0]["mainsnak"]["datavalue"]["value"][
-            #     "text"]
-            # annotation_language = \
-            #     itidata_json["entities"][itidata_id]["claims"]["P18"][0]["mainsnak"]["datavalue"]["value"]["language"]
-            # if (not bool(re.match(pattern, annotation))) or annotation_language != "hu":
-            #     error_row_letter.append(f'CHECK "ANNOTATION" (P18) "{annotation}" @{annotation_language}')
+            # Check annotation
+            index += 1
+            pattern = r'^Kritikai jegyzetek:\s+\d+([-–]\d+)?\.$'
+            try:
+                annotation = itidata_json["entities"][itidata_id]["claims"]["P18"][0]["mainsnak"]["datavalue"]["value"][
+                    "text"]
+                annotation_language = \
+                    itidata_json["entities"][itidata_id]["claims"]["P18"][0]["mainsnak"]["datavalue"]["value"]["language"]
+                if (not bool(re.match(pattern, annotation))) or annotation_language != "hu":
+                    error_row_letter.insert(index, f'CHECK "ANNOTATION" (P18) "{annotation}" @{annotation_language}')
+            except KeyError:
+                error_row_letter.insert(index, f'MISSING "ANNOTATION" (P18)')
+            check_list_index(index, error_row_letter)
 
             # Check related item
+            index += 1
             related_item_id = \
                 itidata_json["entities"][itidata_id]["claims"]["P129"][0]["mainsnak"]["datavalue"]["value"]["id"]
             related_item_label = get_eng_hun_item_labels_from_itidata(related_item_id, "")[0]
@@ -122,26 +157,35 @@ with (open("shortened_xml.tsv", "r", encoding="utf-8") as shortened_xml_tsv_file
             label_hu = get_eng_hun_item_labels_from_itidata(itidata_id, "")[0]
 
             if normalize(related_item_label) != normalize(label_hu):
-                error_row_letter.append(f'CHECK "RELATED TO" (P129) LABEL MISMACH "{related_item_label}"')
+                error_row_letter.insert(index, f'CHECK "RELATED TO" (P129) LABEL MISMACH "{related_item_label}"')
                 visualize_diff(normalize(related_item_label), normalize(label_hu))
+            check_list_index(index, error_row_letter)
 
-            # # Publication date
-            # publlication_date = []
-            # if itidata_json["entities"][itidata_id]["claims"].get("P218"):
-            #     publlication_date.append("NO CREATION DATE (P218) IS NEEDED")
-            # if not itidata_json["entities"][itidata_id]["claims"].get("P57"):
-            #     publlication_date.append("PUBLICATION DATE (P57) MISSING")
-            # else:
-            #     if itidata_json["entities"][itidata_id]["claims"]["P57"][0]["mainsnak"]["datavalue"]["value"]["time"] != \
-            #             row[14].split("/")[0] and \
-            #             itidata_json["entities"][itidata_id]["claims"]["P57"][0]["mainsnak"]["datavalue"]["value"][
-            #                 "precision"] != row[14].split("/")[1]:
-            #         publlication_date.append("PUBLICATION DATE (P57) INCORRECT")
-            #         # print(itidata_json["entities"][itidata_id]["claims"]["P57"][0]["mainsnak"]["datavalue"]["value"])
-            #         # print(row[14])
-            # if len(publlication_date) > 0:
-            #     error_row_letter.append("; ".join(publlication_date))
+            # Publication date
+            index += 1
+            publlication_date = []
+            if itidata_json["entities"][itidata_id]["claims"].get("P218"):
+                publlication_date.append("NO CREATION DATE (P218) IS NEEDED")
+            if not itidata_json["entities"][itidata_id]["claims"].get("P57"):
+                publlication_date.append("PUBLICATION DATE (P57) MISSING")
+            else:
+                if itidata_json["entities"][itidata_id]["claims"]["P57"][0]["mainsnak"]["datavalue"]["value"]["time"] != \
+                        row[15].split("/")[0] and \
+                        itidata_json["entities"][itidata_id]["claims"]["P57"][0]["mainsnak"]["datavalue"]["value"][
+                            "precision"] != row[15].split("/")[1]:
+                    publlication_date.append("PUBLICATION DATE (P57) INCORRECT")
+                    # print(itidata_json["entities"][itidata_id]["claims"]["P57"][0]["mainsnak"]["datavalue"]["value"])
+                    # print(row[15])
+            if len(publlication_date) > 0:
+                error_row_letter.insert(index, "; ".join(publlication_date))
+            check_list_index(index, error_row_letter)
 
-            print(error_row_letter)
+            # for num in range(len(error_row_letter)):
+            #     print(num, error_row_letter[num])
+            print(error_row_letter, len(error_row_letter))
             AJOM17_error_list_file_writer.writerow(error_row_letter)
+
             error_row_manuscript = []
+
+            # Check <term> and <supplied> "Elveszett" and comapre to "Raktári szám": elveszett
+
