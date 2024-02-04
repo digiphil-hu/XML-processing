@@ -17,7 +17,7 @@ with open(
 #     print(key, value)
 
 
-def create_dictionary(soup, path):
+def create_dictionary(soup, xml_path):
 
     data_dict_letter = {}
     data_dict_manuscript = {}
@@ -127,7 +127,7 @@ def create_dictionary(soup, path):
 
     # Populate dictionary for letters
     data_dict_letter['qid'] = ""
-    data_dict_letter['filename'] = path.split("/")[-1]
+    data_dict_letter['filename'] = xml_path.split("/")[-1]
     data_dict_letter['Lhu'] = lhu_value
     data_dict_letter['Len'] = lhu_value
     data_dict_letter['Dhu'] = ", ".join(hu_desciption)
@@ -144,11 +144,14 @@ def create_dictionary(soup, path):
 
     write_to_csv(data_dict_letter, 'xml_header_tsv_letter.tsv')
 
-    # Manuscript description, manuscript institution, institution id
+    # Manuscript description, manuscript institution, institution id, shelf number
     institution_abbr = []
     institution_id = []
+    shelf_number = ""
     if soup.msDesc.msIdentifier.find('institution') is not None:
         if soup.msDesc.msIdentifier.find('institution').text.strip() != "":
+            shelf_number = soup.msDesc.msIdentifier.find("idno", {"type": None}) \
+                if soup.msDesc.msIdentifier.find("idno", {"type": None}) is not None else ""
             institutions = soup.msDesc.msIdentifier.institution.text.split(";")
             for institution in institutions:
                 institution = normalize_whitespaces(institution).lstrip()
@@ -157,8 +160,13 @@ def create_dictionary(soup, path):
                     institution_id.append(insitution_name_dict[institution][0].split("/")[-1])
                 else:
                     print("Unknown insitution name: ", institution)
-    abbr_hu = " – ".join(institution_abbr) if len(institution_abbr) > 0 else "elveszett"
-    abbr_en = " – ".join(institution_abbr) if len(institution_abbr) > 0 else "lost"
+        # else:
+        #     shelf_number = soup.msDesc.msIdentifier.find("idno", {"type": None})
+        #     print(shelf_number, path)
+    if shelf_number != "" and shelf_number is not None:
+        shelf_number = ", " + normalize_whitespaces(shelf_number.string)
+    abbr_hu = " – ".join(institution_abbr) + shelf_number if len(institution_abbr) > 0 else "elveszett"
+    abbr_en = " – ".join(institution_abbr) + shelf_number if len(institution_abbr) > 0 else "lost"
     manuscript_description_hu = " és ".join(senders) + ", kézirat, " + abbr_hu
     manuscript_description_en = " and ".join(senders_en) + ", manuscript, " + abbr_en
 
@@ -170,6 +178,8 @@ def create_dictionary(soup, path):
             itidata_id = normalize_whitespaces(idno.text)
         else:
             record_id = normalize_whitespaces(idno.text)
+    if record_id != shelf_number.lstrip(", "):
+        print("Shelf  number error: ", record_id, shelf_number, xml_path)
 
     # Creation placeName
     place_name_manuscript = soup.creation.find('placeName')
@@ -188,7 +198,7 @@ def create_dictionary(soup, path):
         if parsed.creation.find("date").get("to"):
             to_date = format_date(parsed.creation.find("date").get("to"))
         if exact_date == "Invalid date format" or from_date == "Invalid date format" or exact_date == "Invalid date format":
-            print("Invalid date: ", path)
+            print("Invalid date: ", xml_path)
     # if exact_date != "":
     #     print("Exact date: ", exact_date)
     # if from_date != "":
@@ -198,7 +208,7 @@ def create_dictionary(soup, path):
 
     # Populate dictionary for manuscripts
     data_dict_manuscript['qid'] = itidata_id
-    data_dict_manuscript['filename'] = path.split("/")[-1]
+    data_dict_manuscript['filename'] = xml_path.split("/")[-1]
     data_dict_manuscript['P1'] = "Q15"
     data_dict_manuscript['Lhu'] = lhu_value
     data_dict_manuscript['Len'] = lhu_value

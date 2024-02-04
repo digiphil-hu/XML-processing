@@ -4,28 +4,36 @@ from get_geo_namespace_id_itidata import get_eng_hun_item_labels_from_itidata
 from xml_methods import compare_text_normalize, normalize, visualize_diff, find_difference_strings, check_list_index
 from collections import Counter
 
-# Get the list of letters present in itidata. Column[0] = item url, column[4] = letter id of the critical edition
-# SPARQL query: http://tinyurl.com/2dagung4 DON'T FORGET TO DELETE LETTERS FROM OTHER VOLUMES!!!
-with (open("itidata_ajom17_18_19_sparql_export.csv", "r", encoding="utf-8") as itidata_query_file):
+# Get the list of manuscripts present in itidata. Column[0] = item url
+# SPARQL query: http://tinyurl.com/24ru29pf
+with (open("itidata_ajom17_18_19_manuscripts_sparql_export.csv", "r", encoding="utf-8") as itidata_query_file):
     itidata_reader = csv.reader(itidata_query_file, delimiter="\t")
-    letter_id_dict = dict()
+    header = itidata_reader.__next__()
+    manuscript_ids = []
     for row in itidata_reader:
-        letter_id_dict[row[0].split("/")[-1]] = row[4].strip(".")
-    if len(list(letter_id_dict.values())) != len(set(list(letter_id_dict.values()))):
-        counter = Counter(letter_id_dict.values())
-        duplicates = [value for value, count in counter.items() if count > 1]
-        if duplicates:
-            print("DUPLUM!")
-            print("Duplicated values:", duplicates)
+
+        # Single out letters that are not part of the Arany correspondence
+        if "arany" in row[1].lower():
+            manuscript_ids.append(row[0].split("/")[-1])
+        else:
+            print(row[0], row[1])
+
+    # Check for duplicat id-s
+    if len(manuscript_ids) > len(set(manuscript_ids)):
+        counter = Counter(manuscript_ids)
+        duplicates = [value for value, count in counter if count > 1]
+        print(duplicates)
+    print(len(manuscript_ids))
+
 
 # Single out letters present in itidata
-with open("/home/eltedh/PycharmProjects/XML-processing/AJOM17_18_19/xml_header_tsv_letter.tsv", "r",
+with open("/home/eltedh/PycharmProjects/XML-processing/AJOM17_18_19/xml_header_tsv_manuscript.tsv", "r",
           encoding="utf-8") as xml_tsv_file:
-    with open("shortened_xml_letters.tsv", "w", encoding="utf-8") as shortened_xml_tsv_file:
+    with open("shortened_xml_manuscripts.tsv", "w", encoding="utf-8") as shortened_xml_tsv_file:
         shortened_xml_writer = csv.writer(shortened_xml_tsv_file, delimiter="\t")
         xml_tsv_reader = csv.reader(xml_tsv_file, delimiter="\t")
         for row in xml_tsv_reader:
-            if row[12] in list(letter_id_dict.values()):
+            if row[12] in list(manuscript_id_dict.values()):
                 itidata_id_list = [key for key, value in letter_id_dict.items() if value == row[12]]
                 if len(itidata_id_list) == 1:
                     row.insert(0, itidata_id_list[0])
@@ -33,6 +41,7 @@ with open("/home/eltedh/PycharmProjects/XML-processing/AJOM17_18_19/xml_header_t
                 else:
                     print("DUPLUM: ", itidata_id_list, row[12])
 
+"""
 # Compare itidata items sparql export and xml based tsv
 
 with (open("shortened_xml_letters.tsv", "r", encoding="utf-8") as shortened_xml_tsv_file):
@@ -189,3 +198,4 @@ with (open("shortened_xml_letters.tsv", "r", encoding="utf-8") as shortened_xml_
 
             # Check <term> and <supplied> "Elveszett" and comapre to "Raktári szám": elveszett
 
+"""
