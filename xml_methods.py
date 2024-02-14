@@ -1,8 +1,24 @@
 import difflib
 import os
 import re
+from collections import Counter
+from datetime import datetime
 from bs4 import BeautifulSoup
 
+month_names_hu = {
+        "January": "január",
+        "February": "február",
+        "March": "március",
+        "April": "április",
+        "May": "május",
+        "June": "június",
+        "July": "július",
+        "August": "augusztus",
+        "September": "szeptember",
+        "October": "október",
+        "November": "november",
+        "December": "december"
+    }
 
 def parse_xml(xml_path):
     with open(xml_path, 'r', encoding='utf-8') as file:
@@ -190,3 +206,23 @@ def check_list_index(index_number, list_to_check):
     except IndexError:
         list_to_check.insert(index_number, "")
     return list_to_check
+
+
+def duplicate_list(list_in):
+    if len(list_in) > len(set(list_in)):
+        counter = Counter(list_in)
+        duplicates = [value for value, count in counter.items() if count > 1]
+        return duplicates
+    else:
+        return None
+
+
+def convert_date(date_str):
+   try:
+        date_obj = datetime.strptime(date_str, "%Y-%m-%d")
+        month_name_hu = month_names_hu[date_obj.strftime("%B")]
+        day = date_obj.day
+        year = date_obj.year
+        return f"{year}. {month_name_hu} {day}."
+    except ValueError:
+        return "Invalid date format"

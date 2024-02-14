@@ -1,8 +1,5 @@
 import csv
-import re
-from get_geo_namespace_id_itidata import get_eng_hun_item_labels_from_itidata
-from xml_methods import compare_text_normalize, normalize, visualize_diff, find_difference_strings, check_list_index
-from collections import Counter
+from xml_methods import duplicate_list
 
 # Get the list of manuscripts present in itidata. Column[0] = item url
 # SPARQL query: http://tinyurl.com/24ru29pf
@@ -19,20 +16,26 @@ with (open("itidata_ajom17_18_19_manuscripts_sparql_export.csv", "r", encoding="
             print(row[0], row[1])
 
     # Check for duplicat id-s
-    if len(manuscript_ids) > len(set(manuscript_ids)):
-        counter = Counter(manuscript_ids)
-        duplicates = [value for value, count in counter if count > 1]
-        print(duplicates)
-    print(len(manuscript_ids))
+    print(duplicate_list(manuscript_ids))
 
-
-# Single out letters present in itidata
+# Single out XML-s that have ITIdata manuscript representation
 with open("/home/eltedh/PycharmProjects/XML-processing/AJOM17_18_19/xml_header_tsv_manuscript.tsv", "r",
           encoding="utf-8") as xml_tsv_file:
     with open("shortened_xml_manuscripts.tsv", "w", encoding="utf-8") as shortened_xml_tsv_file:
         shortened_xml_writer = csv.writer(shortened_xml_tsv_file, delimiter="\t")
         xml_tsv_reader = csv.reader(xml_tsv_file, delimiter="\t")
+        manuscript_ids_in_xml = []
+        missing_itidata_ids_in_xml = []
         for row in xml_tsv_reader:
+            manuscript_ids_in_xml.append(row[0].strip())
+            if row[0].strip() != "" and row[0].strip() not in manuscript_ids:
+                print("Wrong itidata id in xml: ", row[0].strip(), row[1])
+        print("Duplicates in xml: ", duplicate_list(manuscript_ids_in_xml))
+        missing_itidata_ids_in_xml = [id for id in manuscript_ids if id not in manuscript_ids_in_xml]
+        print("Missing itidata ids in xml: ", len(missing_itidata_ids_in_xml))
+
+
+"""
             if row[12] in list(manuscript_id_dict.values()):
                 itidata_id_list = [key for key, value in letter_id_dict.items() if value == row[12]]
                 if len(itidata_id_list) == 1:
@@ -41,7 +44,7 @@ with open("/home/eltedh/PycharmProjects/XML-processing/AJOM17_18_19/xml_header_t
                 else:
                     print("DUPLUM: ", itidata_id_list, row[12])
 
-"""
+
 # Compare itidata items sparql export and xml based tsv
 
 with (open("shortened_xml_letters.tsv", "r", encoding="utf-8") as shortened_xml_tsv_file):
