@@ -3,7 +3,7 @@
 import csv
 
 from xml_methods import get_filenames, revert_persname, normalize_allcaps, normalize_whitespaces, write_to_csv, \
-    format_date
+    format_date, convert_date
 
 # Import institution names from ITIdata from csv made by SPARQL query.
 with open(
@@ -13,12 +13,13 @@ with open(
     insitution_name_dict = {}
     for row in csv_reader:
         insitution_name_dict[row[2]] = (row[0], row[3])
+
+
 # for key, value in insitution_name_dict.items():
 #     print(key, value)
 
 
 def create_dictionary(soup, xml_path):
-
     data_dict_letter = {}
     data_dict_manuscript = {}
 
@@ -29,10 +30,19 @@ def create_dictionary(soup, xml_path):
     title = head.find('title').text
     title = normalize_allcaps(title)
     elveszett = " [Elveszett]," if soup.find('supplied', string="Elveszett") else ","
-    place_name_letter = get_text_with_supplied(head, 'placeName', children=False)
-    place_name_letter = normalize_whitespaces(place_name_letter)
-    if place_name_letter != "":
+    # place_name_letter = get_text_with_supplied(head, 'placeName', children=False)
+    # place_name_letter = normalize_whitespaces(place_name_letter)
+    place_name_letter = ""
+    if head.placeName:
+        place_name_letter = head.placeName.idno.get("corresp")
+        if head.placeName.parent.name == "supplied" or head.placeName.parent.parent.name == "supplied":
+            place_name_letter = "[" + place_name_letter + "]"
+
+    if place_name_letter is not None and place_name_letter != "":
         place_name_letter += ", "
+    if place_name_letter is None:
+        print(head.placeName, path)
+        place_name_letter = head.placeName.text
     try:
         if head.date.next_sibling and head.date.next_sibling.name is None:
             pass
@@ -41,11 +51,17 @@ def create_dictionary(soup, xml_path):
     except AttributeError:
         pass
         # print("No date in <head>", path)
-    date = get_text_with_supplied(head, 'date', children=True)
-    date = normalize_whitespaces(date)
+    exact_date = ""
+    if head.date:
+        if head.date.get("when"):
+            exact_date = convert_date(head.date.get("when"))
+            if head.date.parent.name == "supplied" or head.date.parent.parent.name == "supplied":
+                exact_date = "[" + exact_date + "]"
+    date_text = get_text_with_supplied(head, 'date', children=True)
+    date_text = normalize_whitespaces(date_text)
+    date = exact_date if exact_date != "" else date_text
 
     lhu_value = f"{title}{elveszett} {place_name_letter}{date}"
-    # print(lhu_value, path)
 
     # Sender and receiver namespace identity
     sender_id_list = []
@@ -129,7 +145,8 @@ def create_dictionary(soup, xml_path):
     data_dict_letter['qid'] = ""
     data_dict_letter['filename'] = xml_path.split("/")[-1]
     data_dict_letter['Lhu'] = lhu_value
-    data_dict_letter['Len'] = lhu_value
+    # data_dict_letter['Len'] = lhu_value
+    data_dict_letter['date'] = normalize_whitespaces(";".join(date.text for date in head.find_all("date")))
     data_dict_letter['Dhu'] = ", ".join(hu_desciption)
     data_dict_letter['Den'] = ", ".join(en_description)
     data_dict_letter['P1'] = "Q26"

@@ -20,6 +20,7 @@ month_names_hu = {
         "December": "december"
     }
 
+
 def parse_xml(xml_path):
     with open(xml_path, 'r', encoding='utf-8') as file:
         xml_content = file.read()
@@ -218,11 +219,22 @@ def duplicate_list(list_in):
 
 
 def convert_date(date_str):
-   try:
-        date_obj = datetime.strptime(date_str, "%Y-%m-%d")
-        month_name_hu = month_names_hu[date_obj.strftime("%B")]
-        day = date_obj.day
-        year = date_obj.year
-        return f"{year}. {month_name_hu} {day}."
+    try:
+        if len(date_str) == 4:
+            year = int(date_str)
+            return f"{year}."
+        elif len(date_str) == 7:
+            date_obj = datetime.strptime(date_str, "%Y-%m")
+            month_name_hu = month_names_hu[date_obj.strftime("%B")]
+            year = date_obj.year
+            return f"{year}. {month_name_hu}"
+        elif len(date_str) == 10:
+            date_obj = datetime.strptime(date_str, "%Y-%m-%d")
+            month_name_hu = month_names_hu[date_obj.strftime("%B")]
+            day = date_obj.day
+            year = date_obj.year
+            return f"{year}. {month_name_hu} {day}."
+        else:
+            return "Invalid date format"
     except ValueError:
         return "Invalid date format"
