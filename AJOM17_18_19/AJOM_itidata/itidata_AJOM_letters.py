@@ -22,19 +22,23 @@ with (open("itidata_ajom17_18_19_sparql_export.csv", "r", encoding="utf-8") as i
 with open("/home/eltedh/PycharmProjects/XML-processing/AJOM17_18_19/xml_header_tsv_letter.tsv", "r",
           encoding="utf-8") as xml_tsv_file:
     with open("shortened_xml_letters.tsv", "w", encoding="utf-8") as shortened_xml_tsv_file:
-        shortened_xml_writer = csv.writer(shortened_xml_tsv_file, delimiter="\t")
-        xml_tsv_reader = csv.reader(xml_tsv_file, delimiter="\t")
-        for row in xml_tsv_reader:
-            if row[12] in list(letter_id_dict.values()):
-                itidata_id_list = [key for key, value in letter_id_dict.items() if value == row[12]]
-                if len(itidata_id_list) == 1:
-                    row.insert(0, itidata_id_list[0])
-                    shortened_xml_writer.writerow(row)
+        with open("shortened_xml_letters_not_in_itidata.tsv", "w", encoding="utf-8") as shortened_inverse_xml_tsv_file:
+            shortened_xml_writer = csv.writer(shortened_xml_tsv_file, delimiter="\t")
+            shortened_inverse_xml_writer = csv.writer(shortened_inverse_xml_tsv_file, delimiter="\t")
+            xml_tsv_reader = csv.reader(xml_tsv_file, delimiter="\t")
+            for row in xml_tsv_reader:
+                if row[12] in list(letter_id_dict.values()):
+                    itidata_id_list = [key for key, value in letter_id_dict.items() if value == row[12]]
+                    if len(itidata_id_list) == 1:
+                        row.insert(0, itidata_id_list[0])
+                        shortened_xml_writer.writerow(row)
+                    else:
+                        print("DUPLUM: ", itidata_id_list, row[12])
                 else:
-                    print("DUPLUM: ", itidata_id_list, row[12])
+                    shortened_inverse_xml_writer.writerow(row)
 
 # Compare itidata items sparql export and xml based tsv
-
+"""
 with (open("shortened_xml_letters.tsv", "r", encoding="utf-8") as shortened_xml_tsv_file):
     with open("AJOM_error_list_letters.tsv", "w", encoding="utf-8") as AJOM17_error_list_file:
         shortened_xml_reader = csv.reader(shortened_xml_tsv_file, delimiter="\t")
@@ -182,10 +186,10 @@ with (open("shortened_xml_letters.tsv", "r", encoding="utf-8") as shortened_xml_
 
             # for num in range(len(error_row_letter)):
             #     print(num, error_row_letter[num])
-            print(error_row_letter, len(error_row_letter))
+            # print(error_row_letter, len(error_row_letter))
             AJOM17_error_list_file_writer.writerow(error_row_letter)
 
-            error_row_manuscript = []
 
             # Check <term> and <supplied> "Elveszett" and comapre to "Raktári szám": elveszett
 
+"""

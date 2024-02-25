@@ -20,12 +20,19 @@ with open(
 
 
 def create_dictionary(soup, xml_path):
+    path = xml_path.split("/")[-1]
     data_dict_letter = {}
     data_dict_manuscript = {}
 
     # Extract data for 'Lhu'
-    head = soup.body.div.find('head')
+    try:
+        head = soup.body.div.find('head')
+    except AttributeError:
+        print("XML error: no body tag: ", path)
+        return
+    note_critic_list = []
     for tag in head.find_all('note'):  # Leave out placeName or date tags from note type critic
+        note_critic_list.append(tag)
         tag.decompose()
     title = head.find('title').text
     title = normalize_allcaps(title)
@@ -60,7 +67,7 @@ def create_dictionary(soup, xml_path):
     date_text = get_text_with_supplied(head, 'date', children=True)
     date_text = normalize_whitespaces(date_text)
     date = exact_date if exact_date != "" else date_text
-
+    # print(place_name_letter, path)
     lhu_value = f"{title}{elveszett} {place_name_letter}{date}"
 
     # Sender and receiver namespace identity
@@ -68,10 +75,9 @@ def create_dictionary(soup, xml_path):
     sent_action = soup.profileDesc.find("correspAction", attrs={"type": "sent"})
     if sent_action:
         sender_name_list = sent_action.find_all('persName')
-        # Chech if there are more then one sender.
-        if len(sender_name_list) > 1:
-            # print("More sender in: ", path)
-            pass
+        # Chech if there are more than one sender.
+        # if len(sender_name_list) > 1:
+        #     print("More sender in: ", path, sender_name_list)
         for sender_name in sender_name_list:
             if sender_name.idno:
                 sender_id_list.append(sender_name.idno.text)
@@ -80,7 +86,7 @@ def create_dictionary(soup, xml_path):
                     # print("No sender idno value: ", path, sender_name.parent.name, sender_name)
             else:
                 pass
-                # print("No sender idno: ", path)
+                # print("No sender idno: ", path, lhu_value)
     sender_id = ";".join(sender_id_list)
 
     recipient_id_list = []
@@ -89,7 +95,7 @@ def create_dictionary(soup, xml_path):
         recipient_name_list = recipient_action.find_all('persName')
         # Check if there are multiple recievers
         if len(recipient_name_list) > 1:
-            # print("More recipient in: ", path)
+            print("More recipients in: ", path, lhu_value)
             pass
         for recipient_name in recipient_name_list:
             if recipient_name.idno:
@@ -99,7 +105,7 @@ def create_dictionary(soup, xml_path):
                     # print("No recipient idno string: ", path, recipient_name.parent.name, recipient_name)
             else:
                 pass
-                # print("No recipient idno: ", path)
+                # print("No recipient idno: ", path, lhu_value)
     recipient_id = ";".join(recipient_id_list)
 
     # Extract data for 'Dhu', 'Den'
@@ -143,7 +149,7 @@ def create_dictionary(soup, xml_path):
 
     # Populate dictionary for letters
     data_dict_letter['qid'] = ""
-    data_dict_letter['filename'] = xml_path.split("/")[-1]
+    data_dict_letter['filename'] = path
     data_dict_letter['Lhu'] = lhu_value
     # data_dict_letter['Len'] = lhu_value
     data_dict_letter['date'] = normalize_whitespaces(";".join(date.text for date in head.find_all("date")))
@@ -226,19 +232,19 @@ def create_dictionary(soup, xml_path):
     # Populate dictionary for manuscripts
     data_dict_manuscript['qid'] = itidata_id
     data_dict_manuscript['filename'] = xml_path.split("/")[-1]
-    data_dict_manuscript['P1'] = "Q15"
+    data_dict_manuscript['P1'] = "Q15"  # Instance of: manuscript
     data_dict_manuscript['Lhu'] = lhu_value
     data_dict_manuscript['Len'] = lhu_value
     data_dict_manuscript['Dhu'] = manuscript_description_hu
     data_dict_manuscript['Den'] = manuscript_description_en
     data_dict_manuscript['P7'] = sender_id
     data_dict_manuscript['P80'] = recipient_id
-    data_dict_manuscript['P41'] = "Q26"
+    data_dict_manuscript['P41'] = "Q26"  # Genre: letter
     data_dict_manuscript['P85'] = place_name_manuscript
     data_dict_manuscript['P203'] = ";".join(institution_id)
     data_dict_manuscript['P204'] = record_id
     data_dict_manuscript['P2018'] = exact_date if exact_date != "" else from_date + "--" + to_date
-
+    for
     write_to_csv(data_dict_manuscript, 'xml_header_tsv_manuscript.tsv')
 
 
