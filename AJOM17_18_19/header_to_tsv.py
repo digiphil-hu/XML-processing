@@ -28,22 +28,22 @@ def create_dictionary(soup, xml_path):
     try:
         head = soup.body.div.find('head')
     except AttributeError:
-        print("XML error: no body tag: ", path)
+        print("XML error: no body/div tag: ", path)
         return
-    note_critic_list = []
-    for tag in head.find_all('note'):  # Leave out placeName or date tags from note type critic
-        note_critic_list.append(tag)
-        tag.decompose()
+    for crit_tag in head.find_all('note'):  # Leave out placeName or date tags from note type critic
+        crit_tag.decompose()
     title = head.find('title').text
     title = normalize_allcaps(title)
     elveszett = " [Elveszett]," if soup.find('supplied', string="Elveszett") else ","
     # place_name_letter = get_text_with_supplied(head, 'placeName', children=False)
     # place_name_letter = normalize_whitespaces(place_name_letter)
     place_name_letter = ""
+    place_name_supplied = False
     if head.placeName:
         place_name_letter = head.placeName.idno.get("corresp")
         if head.placeName.parent.name == "supplied" or head.placeName.parent.parent.name == "supplied":
             place_name_letter = "[" + place_name_letter + "]"
+            place_name_supplied = True
 
     if place_name_letter is not None and place_name_letter != "":
         place_name_letter += ", "
@@ -58,14 +58,17 @@ def create_dictionary(soup, xml_path):
     except AttributeError:
         pass
         # print("No date in <head>", path)
+    date_text = get_text_with_supplied(head, 'date', children=True)[0]
+    date_text = normalize_whitespaces(date_text)
+    date_supplied = get_text_with_supplied(head, 'date', children=True)[1]
     exact_date = ""
     if head.date:
         if head.date.get("when"):
             exact_date = convert_date(head.date.get("when"))
             if head.date.parent.name == "supplied" or head.date.parent.parent.name == "supplied":
+                date_supplied = True
                 exact_date = "[" + exact_date + "]"
-    date_text = get_text_with_supplied(head, 'date', children=True)
-    date_text = normalize_whitespaces(date_text)
+
     date = exact_date if exact_date != "" else date_text
     # print(place_name_letter, path)
     lhu_value = f"{title}{elveszett} {place_name_letter}{date}"
@@ -94,9 +97,8 @@ def create_dictionary(soup, xml_path):
     if recipient_action:
         recipient_name_list = recipient_action.find_all('persName')
         # Check if there are multiple recievers
-        if len(recipient_name_list) > 1:
-            print("More recipients in: ", path, lhu_value)
-            pass
+        # if len(recipient_name_list) > 1:
+        #     print("More recipients in: ", path, lhu_value)
         for recipient_name in recipient_name_list:
             if recipient_name.idno:
                 recipient_id_list.append(recipient_name.idno.text)
@@ -240,11 +242,27 @@ def create_dictionary(soup, xml_path):
     data_dict_manuscript['P7'] = sender_id
     data_dict_manuscript['P80'] = recipient_id
     data_dict_manuscript['P41'] = "Q26"  # Genre: letter
-    data_dict_manuscript['P85'] = place_name_manuscript
+    data_dict_manuscript['P85'] = place_name_manuscript if place_name_supplied is not True else (place_name_manuscript +
+                                                                                                 "|P230:Q339118")
     data_dict_manuscript['P203'] = ";".join(institution_id)
     data_dict_manuscript['P204'] = record_id
     data_dict_manuscript['P2018'] = exact_date if exact_date != "" else from_date + "--" + to_date
-    for
+    if date_supplied:
+        data_dict_manuscript['P2018'] += "|P230:Q339118"
+
+    if len(soup.teiHeader.find_all("note", {"type": "critIntro"})) > 1:
+        print("More than one critical note in header: ", path)
+    crit_tag = soup.teiHeader.find("note", {"type": "critIntro"})
+    for idno_tag in crit_tag.find_all("idno"):
+        idno_tag.string = ""
+        # idno_corresp = idno_tag.get("corresp")
+        # if idno_corresp:
+        #     idno_tag.string = idno_corresp
+        idno_tag.unwrap()
+    [ref.decompose() for ref in crit_tag.find_all("ref")]
+    tag_text = normalize_whitespaces(crit_tag.text)
+    # if tag_text != "":
+    #     print(f"{path}\t{tag_text}\t{len(tag_text)}")
     write_to_csv(data_dict_manuscript, 'xml_header_tsv_manuscript.tsv')
 
 
@@ -254,6 +272,7 @@ def get_text_with_supplied(soup, tag_name, children):
     If the supplied text is a child, '[' and ']' are added
     """
     tag = soup.find(tag_name)
+    supplied = False
     if tag:
         tag_to_delete = ["orig", "del"]
         for del_tag in tag.find_all(element for element in tag_to_delete):
@@ -267,10 +286,11 @@ def get_text_with_supplied(soup, tag_name, children):
         tag_text_no_child = [text for text in tag.stripped_strings]
         tag_text_with_child = tag.text
         if tag.parent.name == 'supplied' or tag.parent.parent.name == 'supplied':
-            return f"[{tag_text_with_child.strip()}]" if children else f"[{tag_text_no_child[0].strip()}]"
+            supplied = True
+            return f"[{tag_text_with_child.strip()}]" if children else f"[{tag_text_no_child[0].strip()}]", supplied
         else:
-            return tag_text_with_child.strip() if children else tag_text_no_child[0].strip()
-    return ""
+            return tag_text_with_child.strip() if children else tag_text_no_child[0].strip(), supplied
+    return "", supplied
 
 
 # Usage
