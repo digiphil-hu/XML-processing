@@ -38,7 +38,7 @@ with open("/home/eltedh/PycharmProjects/XML-processing/AJOM17_18_19/xml_header_t
                     shortened_inverse_xml_writer.writerow(row)
 
 # Compare itidata items sparql export and xml based tsv
-"""
+
 with (open("shortened_xml_letters.tsv", "r", encoding="utf-8") as shortened_xml_tsv_file):
     with open("AJOM_error_list_letters.tsv", "w", encoding="utf-8") as AJOM17_error_list_file:
         shortened_xml_reader = csv.reader(shortened_xml_tsv_file, delimiter="\t")
@@ -192,4 +192,3 @@ with (open("shortened_xml_letters.tsv", "r", encoding="utf-8") as shortened_xml_
 
             # Check <term> and <supplied> "Elveszett" and comapre to "Raktári szám": elveszett
 
-"""
