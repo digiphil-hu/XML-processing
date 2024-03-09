@@ -241,15 +241,13 @@ def create_dictionary(soup, xml_path):
     # Populate dictionary for manuscripts
     data_dict_manuscript['qid'] = itidata_id
     data_dict_manuscript['filename'] = xml_path.split("/")[-1]
-    data_dict_manuscript['PID'] = pid
-    data_dict_manuscript['P1'] = "Q15"  # Instance of: manuscript
+    data_dict_manuscript['PID'] = pid.split(".")[-1]
     data_dict_manuscript['Lhu'] = lhu_value
     data_dict_manuscript['Len'] = lhu_value
     data_dict_manuscript['Dhu'] = manuscript_description_hu
     data_dict_manuscript['Den'] = manuscript_description_en
     data_dict_manuscript['P7'] = sender_id
     data_dict_manuscript['P80'] = recipient_id
-    data_dict_manuscript['P41'] = "Q26"  # Genre: letter
     data_dict_manuscript['P85'] = place_name_manuscript if place_name_supplied is not True else (place_name_manuscript +
                                                                                                  "|P230:Q339118")
     data_dict_manuscript['P203'] = ";".join(institution_id)
