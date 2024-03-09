@@ -41,23 +41,28 @@ def create_dictionary(soup, xml_path):
     place_name_supplied = False
     if head.placeName:
         place_name_letter = head.placeName.idno.get("corresp")
+        if place_name_letter is None:
+            place_name_letter = head.placeName.text.split("Q")[0]
         if head.placeName.parent.name == "supplied" or head.placeName.parent.parent.name == "supplied":
             place_name_letter = "[" + place_name_letter + "]"
             place_name_supplied = True
-
+    elif soup.teiHeader.creation.find("placeName"):
+        place_name_letter = soup.teiHeader.creation.placeName.text.split("Q")[0]
+        if place_name_letter and soup.find('supplied', string="Elveszett"):
+            place_name_letter = "[" + place_name_letter + "]"
     if place_name_letter is not None and place_name_letter != "":
         place_name_letter += ", "
     if place_name_letter is None:
-        print(head.placeName, path)
+        print("MISSING PLACE NAME IN HEAD!", head.placeName, path)
         place_name_letter = head.placeName.text
-    try:
-        if head.date.next_sibling and head.date.next_sibling.name is None:
-            pass
-            # if head.date.next_sibling.text.replace(r"\s", "") != "":
-            #     print(head.date.next_sibling.name, "///", normalize_whitespaces(head.date.next_sibling.text), "///", path.split("/")[-1])
-    except AttributeError:
-        pass
-        # print("No date in <head>", path)
+    # try:
+    #     if head.date.next_sibling and head.date.next_sibling.name is None:
+    #         pass
+    #         # if head.date.next_sibling.text.replace(r"\s", "") != "":
+    #         #     print(head.date.next_sibling.name, "///", normalize_whitespaces(head.date.next_sibling.text), "///", path.split("/")[-1])
+    # except AttributeError:
+    #     pass
+    #     # print("No date in <head>", path)
     date_text = get_text_with_supplied(head, 'date', children=True)[0]
     date_text = normalize_whitespaces(date_text)
     date_supplied = get_text_with_supplied(head, 'date', children=True)[1]
@@ -148,6 +153,8 @@ def create_dictionary(soup, xml_path):
     # Number of letter
     pid = soup.publicationStmt.find("idno", {"type": "PID"}).text
     series_ordinal = pid.split(".")[-1]
+    if series_ordinal != path.rstrip(".tei.xml").split("_")[-1].replace(".", ""):
+        print(path, series_ordinal, "=>", path.rstrip(".tei.xml").split("_")[-1].replace(".", ""))
 
     # Populate dictionary for letters
     data_dict_letter['qid'] = ""
@@ -234,6 +241,7 @@ def create_dictionary(soup, xml_path):
     # Populate dictionary for manuscripts
     data_dict_manuscript['qid'] = itidata_id
     data_dict_manuscript['filename'] = xml_path.split("/")[-1]
+    data_dict_manuscript['PID'] = pid
     data_dict_manuscript['P1'] = "Q15"  # Instance of: manuscript
     data_dict_manuscript['Lhu'] = lhu_value
     data_dict_manuscript['Len'] = lhu_value

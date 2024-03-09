@@ -3,14 +3,20 @@ import re
 from get_geo_namespace_id_itidata import get_eng_hun_item_labels_from_itidata
 from xml_methods import compare_text_normalize, normalize, visualize_diff, find_difference_strings, check_list_index
 from collections import Counter
+import time
 
-# Get the list of letters present in itidata. Column[0] = item url, column[4] = letter id of the critical edition
-# SPARQL query: http://tinyurl.com/2dagung4 DON'T FORGET TO DELETE LETTERS FROM OTHER VOLUMES!!!
+# Get the list of letters present in itidata. Column[0] = item url, column[2] = letter id of the critical edition
+# SPARQL query: https://tinyurl.com/228w58kt
 with (open("itidata_ajom17_18_19_sparql_export.csv", "r", encoding="utf-8") as itidata_query_file):
     itidata_reader = csv.reader(itidata_query_file, delimiter="\t")
     letter_id_dict = dict()
     for row in itidata_reader:
-        letter_id_dict[row[0].split("/")[-1]] = row[4].strip(".")
+        itidata_id = row[0].split("/")[-1]
+        series_ordinal = row[2].strip(".")
+        if itidata_id not in letter_id_dict:
+            letter_id_dict[itidata_id] = series_ordinal
+        else:
+            print("DUPLICATE ITIDATA ID IN SPARQL EXPORT!", row)
     if len(list(letter_id_dict.values())) != len(set(list(letter_id_dict.values()))):
         counter = Counter(letter_id_dict.values())
         duplicates = [value for value, count in counter.items() if count > 1]
@@ -38,7 +44,6 @@ with open("/home/eltedh/PycharmProjects/XML-processing/AJOM17_18_19/xml_header_t
                     shortened_inverse_xml_writer.writerow(row)
 
 # Compare itidata items sparql export and xml based tsv
-
 with (open("shortened_xml_letters.tsv", "r", encoding="utf-8") as shortened_xml_tsv_file):
     with open("AJOM_error_list_letters.tsv", "w", encoding="utf-8") as AJOM17_error_list_file:
         shortened_xml_reader = csv.reader(shortened_xml_tsv_file, delimiter="\t")
@@ -53,7 +58,7 @@ with (open("shortened_xml_letters.tsv", "r", encoding="utf-8") as shortened_xml_
             # Insert XML filename
             index += 1
             xml_filename = row[2]
-            print(xml_filename)
+            # print(xml_filename)
             error_row_letter.insert(index, xml_filename)
 
             # Check if itidata Hungarian and English lables are identical:
@@ -122,10 +127,10 @@ with (open("shortened_xml_letters.tsv", "r", encoding="utf-8") as shortened_xml_
             index += 1
             try:
                 page_number = itidata_json["entities"][itidata_id]["claims"]["P49"][0]["mainsnak"]["datavalue"]["value"]
-                pattern = r'^\d+([-–]\d+)?\.$'
+                pattern = r'^\d+([-–‒]\d+)?\.$'
                 if not bool(re.match(pattern, page_number)):
                     error_row_letter.insert(index, "CHECK PAGE NUMBER (P49) SYNTAX.")
-                    print(page_number)
+                    print("PAGE NUMBER ERROR", xml_filename, page_number)
             except KeyError:
                 error_row_letter.insert(index, "CHECK MISSING PAGE NUMBER (P49).")
             check_list_index(index, error_row_letter)
@@ -153,16 +158,19 @@ with (open("shortened_xml_letters.tsv", "r", encoding="utf-8") as shortened_xml_
             check_list_index(index, error_row_letter)
 
             # Check related item
-            index += 1
-            related_item_id = \
-                itidata_json["entities"][itidata_id]["claims"]["P129"][0]["mainsnak"]["datavalue"]["value"]["id"]
-            related_item_label = get_eng_hun_item_labels_from_itidata(related_item_id, "")[0]
-            # label_hu = itidata_json["entities"][itidata_id]["labels"]["hu"]["value"]
-            label_hu = get_eng_hun_item_labels_from_itidata(itidata_id, "")[0]
+            try:
+                index += 1
+                related_item_id = \
+                    itidata_json["entities"][itidata_id]["claims"]["P129"][0]["mainsnak"]["datavalue"]["value"]["id"]
+                related_item_label = get_eng_hun_item_labels_from_itidata(related_item_id, "")[0]
+                # label_hu = itidata_json["entities"][itidata_id]["labels"]["hu"]["value"]
+                label_hu = get_eng_hun_item_labels_from_itidata(itidata_id, "")[0]
 
-            if normalize(related_item_label) != normalize(label_hu):
-                error_row_letter.insert(index, f'CHECK "RELATED TO" (P129) LABEL MISMACH "{related_item_label}"')
-                visualize_diff(normalize(related_item_label), normalize(label_hu))
+                if normalize(related_item_label) != normalize(label_hu):
+                    error_row_letter.insert(index, f'CHECK "RELATED TO" (P129) LABEL MISMACH "{related_item_label}"')
+                    visualize_diff(normalize(related_item_label), normalize(label_hu))
+            except KeyError:
+                label_hu = "NO RELATED ITEM"
             check_list_index(index, error_row_letter)
 
             # Publication date

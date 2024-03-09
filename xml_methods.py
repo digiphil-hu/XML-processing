@@ -76,7 +76,7 @@ def visualize_diff(string_one, string_two):
             highlighted_diff.append(f'\033[92m{item[2:]}\033[0m')  # Green color for additions
         else:
             highlighted_diff.append(item)
-    print(''.join(highlighted_diff))
+    # print(''.join(highlighted_diff))
 
 
 def find_difference_strings(str1, str2):
