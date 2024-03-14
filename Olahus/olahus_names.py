@@ -1,6 +1,6 @@
 import csv
 import get_geo_namespace_id_itidata
-from xml_methods import get_filenames, normalize_whitespaces, process_dictionary
+from xml_methods import get_filenames, normalize_whitespaces, process_dictionary, prettify_soup
 from collections import defaultdict
 
 # List of folders whete the TEI XML's are found
@@ -31,7 +31,7 @@ for parsed, path in get_filenames(folder_list):
         normalized_name = name_tag.string
         [normalized_name := normalized_name.replace(string, "") for string in replace_string_list]
         normalized_name = normalize_whitespaces(normalized_name).lstrip().rstrip()
-        # person_name_dict[normalized_name] += 1
+        person_name_dict[normalized_name] += 1
         for key, value in itidata_names_dict.items():
             if normalized_name in value:
                 # Create a new 'idno' tag with the attribute 'ITIdata'
@@ -41,13 +41,13 @@ for parsed, path in get_filenames(folder_list):
     # Write XML's with names enriched
     path_out = "/home/eltedh/PycharmProjects/XML-processing/Olahus/Olahus_name_id/"
     file_name = path.split("/")[-1]
-    with open(path_out + file_name, "w", encoding="utf8") as f:
-        f.write(str(parsed))
+    with open(path, "w", encoding="utf8") as f:
+        f.write(prettify_soup(parsed))
 
 
-# Sort the dictionary by the number of occurrences in descending order or alphabetically
+# # Sort the dictionary by the number of occurrences in descending order or alphabetically
 # sorted_person_name_dict = dict(sorted(person_name_dict.items(), key=lambda item: item[0].lower(), reverse=False))
-
+#
 # for xml_name, occurence in sorted_person_name_dict.items():
 #     name_id_to_enrich = "Unknown"
 #     itidata_name = "None"
