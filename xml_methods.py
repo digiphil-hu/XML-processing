@@ -5,6 +5,8 @@ from collections import Counter
 from datetime import datetime
 from bs4 import BeautifulSoup
 
+import get_geo_namespace_id_itidata
+
 month_names_hu = {
         "January": "január",
         "February": "február",
@@ -238,3 +240,39 @@ def convert_date(date_str):
             return "Invalid date format"
     except ValueError:
         return "Invalid date format"
+
+
+def process_dictionary(input_dict):
+    """
+
+    :param input_dict: ITIdata JSON dict
+    :return: dictionary with propertys as keys, itidata item labels as values
+    """
+
+    # Initialize an empty dictionary to hold the result
+    result = {}
+
+    # Navigate through the dictionary structure to extract the relevant information
+    if 'entities' in input_dict:
+        for item_id, item_data in input_dict['entities'].items():
+            if 'claims' in item_data:
+                for prop, claims in item_data['claims'].items():
+                    for claim in claims:
+                        if 'mainsnak' in claim and 'datavalue' in claim['mainsnak']:
+                            value = claim['mainsnak']['datavalue']['value']
+                            # Check if the value is a dictionary
+                            if isinstance(value, dict):
+                                # If 'id' is a key, use it; otherwise, use the first value from the dictionary
+                                if 'id' in value:
+                                    result_value = value['id']
+                                else:
+                                    first_key = next(iter(value))
+                                    result_value = value[first_key]
+                            else:
+                                result_value = value
+                            result[prop] = result_value
+
+    for key, value in result.items():
+        if value.lstrip('Q').isnumeric():
+            result[key] = get_geo_namespace_id_itidata.get_eng_hun_item_labels_from_itidata(result[key], "")
+    return result
