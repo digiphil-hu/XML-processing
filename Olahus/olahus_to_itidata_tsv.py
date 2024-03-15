@@ -1,5 +1,5 @@
 from collections import defaultdict
-
+import csv
 import xml_methods as xm
 import re
 
@@ -14,8 +14,8 @@ with open("Olahus_letters_itidata_1.csv", "w", encoding="utf-8") as f:
 with open("Olahus_letters_itidata_2.csv", "w", encoding="utf-8") as f:
     pass
 
-# Create dictionary for the ITIdata statements
-itidata_dict = dict()
+# List of strings to delete from names
+replace_string_list = ["(?)", "[?]", "[", "]"]
 
 # # Parse every XML and populate dict for lettet-to-letter references
 # related_item_ref_dict = defaultdict(set)
@@ -33,30 +33,59 @@ itidata_dict = dict()
 #                 ref_target = ref_match.group()
 #                 related_item_ref_dict[path.split("/")[-1]].add(ref_target)
 
+# Populate dictionary with itidata id's and Unknown, Unidetified names
+itidata_names_dict = defaultdict(set)
+with open("olah-persnames_3.csv", "r", encoding="utf8") as f:
+    reader = csv.reader(f, delimiter="\t")
+    for row in reader:
+        if row[2].strip().replace("Q", "").replace(" ", "").isnumeric():
+            itidata_id = row[2].strip().replace(" ", "")
+            itidata_names_dict[itidata_id].add(row[0].strip())
+        elif row[2].strip() == "Unknown" or row[2].strip() == "Unidentified":
+            itidata_names_dict[row[2].strip()].add(row[0].strip())
+        else:
+            print("NAME CSV ERROR: ", row)
+print(itidata_names_dict)
+
 # Parse every XML
+# Create dictionary for the ITIdata statements
 for parsed, path in xm.get_filenames([folder_list[0]]):
+    itidata_dict = dict()
     file_name = path.split("/")[-1]
     header = parsed.teiHeader
 
     # Get labels
-    label = xm.normalize(header.title.string)
-    print(file_name, label)
+    if header.find("title", {"type": "main"}):
+        label = xm.normalize(header.find("title", {"type": "main"}).string)
+    else:
+        label = xm.normalize(header.find("title").string)
+    # print(file_name, label)
 
     # Description
-    sender_name = "Unknown"
+    sender_name = ""
+    name_itidata_id = None
     sender_act = header.find("correspAction", {"type": "sent"})
-    if sender_act is not None:
+    person = sender_act.find_all("persName")
+    if len(person) > 1:
+        print(file_name, person)
+
+    if sender_act is not None and sender_act.find("persName") is not None:
         if sender_act.find("idno"):
             name_itidata_id = sender_act.find("idno").string
             sender_act.idno.decompose()
         sender_name = sender_act.find("persName").string
+        # print(sender_name)
+    else:
+        sender_name = sender_act.find("orgName").string
         print(sender_name)
-        if (sender_name is None or sender_name.strip() == "") and sender_act.find("orgName") is not None:
-            sender_name = sender_act.find("orgName").string
-    if sender_name is None:
+    if sender_name is None or sender_name.strip() == "":
         sender_name = 'Unknown'
-        print("Problem!")
-    desc_eng = xm.normalize(sender_name) + ", " + "letter, " + "Epistulae. Pars I. 1523–1533, 2018"
+        print("ERROR: NO SENDER!", file_name)
+    sender_name = xm.normalize(sender_name)
+    sender_name_namespaced = sender_name
+    [sender_name_namespaced := sender_name_namespaced.replace(string, "") for string in replace_string_list]
+
+    desc_eng = sender_name + ", " + "letter, " + "Epistulae. Pars I. 1523–1533, 2018"
     desc_hun = desc_eng.replace("letter", "levél")
     # print(desc_eng)
 
@@ -79,7 +108,7 @@ for parsed, path in xm.get_filenames([folder_list[0]]):
         print("NUM ERROR: ", file_name)
 
     # PID
-    pid = header.find("idno", {"type": "PID"}).string.strip()[2:]
+    pid = xm.normalize(header.find("idno", {"type": "PID"}).string.strip()[2:])
     if file_name.rstrip('.xml') != pid.replace("olahus.tei.", ""):
         print("PID ERROR: ", file_name, pid)
 
@@ -92,6 +121,14 @@ for parsed, path in xm.get_filenames([folder_list[0]]):
     itidata_dict['P41'] = "P26"  # Genre: letter
     if name_itidata_id is not None:
         itidata_dict['P7'] = name_itidata_id
+        itidata_dict['P37'] = None
+    else:
+        if sender_name_namespaced.strip() in itidata_names_dict["Unidentified"]:
+            itidata_dict['P7'] = None
+            itidata_dict['P37'] = sender_name
+        else:
+            itidata_dict['P7'] = "P39:" + sender_name
+            itidata_dict['P37'] = None
     itidata_dict['P44'] = "Q469927"  # Epistulae. Pars I. 1523–1533
     itidata_dict['P57'] = "+2018-00-00T00:00:00Z/9"
     itidata_dict['P49'] = page_num
@@ -105,7 +142,9 @@ for parsed, path in xm.get_filenames([folder_list[0]]):
 
 
 # Parse every XML
+# Create dictionary for the ITIdata statements
 for parsed, path in xm.get_filenames([folder_list[1]]):
+    itidata_dict = dict()
     file_name = path.split("/")[-1]
     header = parsed.teiHeader
 
@@ -114,20 +153,27 @@ for parsed, path in xm.get_filenames([folder_list[1]]):
     # print(file_name, "\n", label)
 
     # Description
-    sender_name = "Unknown"
+    sender_name = ""
+    name_itidata_id = None
     sender_act = header.find("correspAction", {"type": "sent"})
-    if sender_act is not None:
+    person = sender_act.find_all("persName")
+    if len(person) > 1:
+        print(file_name, person)
+
+    if sender_act is not None and sender_act.find("persName") is not None:
         if sender_act.find("idno"):
             name_itidata_id = sender_act.find("idno").string
             sender_act.idno.decompose()
-        if sender_act.find("persName"):
-            sender_name = sender_act.find("persName").string
-        if sender_act.find("orgName") is not None:
-            if sender_act.find("orgName").string is not None:
-                org_name = sender_act.find("orgName").string
-        if sender_name is None or sender_name.strip() == "":
-            sender_name = org_name
-        sender_name = xm.normalize(sender_name)
+        sender_name = sender_act.find("persName").string
+        # print(sender_name)
+    else:
+        sender_name = sender_act.find("orgName").string
+    if sender_name is None or sender_name.strip() == "":
+        sender_name = 'Unknown'
+        print("ERROR: NO SENDER!", file_name)
+    sender_name = xm.normalize(sender_name)
+    sender_name_namespaced = sender_name
+    [sender_name_namespaced := sender_name_namespaced.replace(string, "") for string in replace_string_list]
 
     desc_eng = xm.normalize(sender_name) + ", " + "letter, " + "Epistulae. Pars II. 1534–1553, 2022"
     desc_hun = desc_eng.replace("letter", "levél")
@@ -141,7 +187,7 @@ for parsed, path in xm.get_filenames([folder_list[1]]):
         # print(page_num, series_num)
 
     # PID
-    pid = header.find("idno", {"type": "PID"}).string.strip()[2:]
+    pid = xm.normalize(header.find("idno", {"type": "PID"}).string.strip()[2:])
     if file_name.rstrip('.xml') != pid.replace("olahus.tei.", ""):
         # pid_error_list.append((file_name.rstrip('.xml'), pid.replace("olahus.tei.", "")))
         print("PID ERROR: ", file_name, pid)
@@ -155,6 +201,14 @@ for parsed, path in xm.get_filenames([folder_list[1]]):
     itidata_dict['P41'] = "P26"  # Genre: letter
     if name_itidata_id is not None:
         itidata_dict['P7'] = name_itidata_id
+        itidata_dict['P37'] = None
+    else:
+        if sender_name_namespaced.strip() in itidata_names_dict["Unidentified"]:
+            itidata_dict['P7'] = None
+            itidata_dict['P37'] = sender_name
+        else:
+            itidata_dict['P7'] = "P39:" + sender_name
+            itidata_dict['P37'] = None
     itidata_dict['P44'] = "Q469915"  # Epistulae. Pars II. 1534–1553
     itidata_dict['P57'] = "+2022-00-00T00:00:00Z/9"
     itidata_dict['P106'] = series_num
