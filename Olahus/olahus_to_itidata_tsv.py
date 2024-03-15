@@ -59,35 +59,40 @@ for parsed, path in xm.get_filenames([folder_list[0]]):
         label = xm.normalize(header.find("title", {"type": "main"}).string)
     else:
         label = xm.normalize(header.find("title").string)
-    # print(file_name, label)
 
     # Description
-    sender_name = ""
-    name_itidata_id = None
-    sender_act = header.find("correspAction", {"type": "sent"})
-    person = sender_act.find_all("persName")
-    if len(person) > 1:
-        print(file_name, person)
-
-    if sender_act is not None and sender_act.find("persName") is not None:
-        if sender_act.find("idno"):
-            name_itidata_id = sender_act.find("idno").string
-            sender_act.idno.decompose()
-        sender_name = sender_act.find("persName").string
-        # print(sender_name)
-    else:
-        sender_name = sender_act.find("orgName").string
-        print(sender_name)
-    if sender_name is None or sender_name.strip() == "":
-        sender_name = 'Unknown'
-        print("ERROR: NO SENDER!", file_name)
-    sender_name = xm.normalize(sender_name)
-    sender_name_namespaced = sender_name
-    [sender_name_namespaced := sender_name_namespaced.replace(string, "") for string in replace_string_list]
-
-    desc_eng = sender_name + ", " + "letter, " + "Epistulae. Pars I. 1523–1533, 2018"
+    desc_eng = label.split(" to ")[0] + ", " + "letter, " + "Epistulae. Pars I. 1523–1533, 2018"
     desc_hun = desc_eng.replace("letter", "levél")
-    # print(desc_eng)
+
+    # Senders
+    itidata_dict_p7_list = []
+    itidata_dict_p37_list = []
+    sender_act = header.find("correspAction", {"type": "sent"})
+    for person_name_tag in sender_act.find_all("persName"):
+        if person_name_tag.find("idno"):
+            itidata_dict_p7_list.append(person_name_tag.idno.string.strip())
+        else:
+            sender_name = xm.normalize(person_name_tag.string)
+            sender_name_namespaced = sender_name
+            [sender_name_namespaced := sender_name_namespaced.replace(string, "") for string in replace_string_list]
+            if sender_name_namespaced.strip() in itidata_names_dict["Unidentified"]:
+                itidata_dict_p37_list.append(sender_name)
+            else:
+                itidata_dict_p7_list.append("P39:" + sender_name)
+    for org_name_tag in sender_act.find_all("orgName"):
+        itidata_dict_p7_list.append(xm.normalize("P39" + org_name_tag.string))
+
+    # Receivers
+    itidata_dict_p80_list = []
+    recieved_act = header.find("correspAction", {"type": "recieved"})
+    for person_name_tag in recieved_act.find_all("persName"):
+        if person_name_tag.find("idno"):
+            itidata_dict_p80_list.append(person_name_tag.idno.string.strip())
+        else:
+            itidata_dict_p80_list.append(xm.normalize("P39:" + person_name_tag.string.strip()))
+    for org_name_tag in recieved_act.find_all("orgName"):
+        if org_name_tag.string.strip().replace(" ", "") != "":
+            itidata_dict_p80_list.append(xm.normalize("P39:" + org_name_tag.string.strip()))
 
     # Page and series ordinal
     page_num = ""
@@ -119,16 +124,9 @@ for parsed, path in xm.get_filenames([folder_list[0]]):
     itidata_dict['Den'] = desc_eng
     itidata_dict['P1'] = "P26"  # Instance of : letter
     itidata_dict['P41'] = "P26"  # Genre: letter
-    if name_itidata_id is not None:
-        itidata_dict['P7'] = name_itidata_id
-        itidata_dict['P37'] = None
-    else:
-        if sender_name_namespaced.strip() in itidata_names_dict["Unidentified"]:
-            itidata_dict['P7'] = None
-            itidata_dict['P37'] = sender_name
-        else:
-            itidata_dict['P7'] = "P39:" + sender_name
-            itidata_dict['P37'] = None
+    itidata_dict['P7'] = ";".join(itidata_dict_p7_list)
+    itidata_dict['P37'] = ";".join(itidata_dict_p37_list)
+    itidata_dict['P80'] = ";".join(itidata_dict_p80_list)
     itidata_dict['P44'] = "Q469927"  # Epistulae. Pars I. 1523–1533
     itidata_dict['P57'] = "+2018-00-00T00:00:00Z/9"
     itidata_dict['P49'] = page_num
@@ -150,34 +148,41 @@ for parsed, path in xm.get_filenames([folder_list[1]]):
 
     # Get labels
     label = xm.normalize(header.find("title", {"type": "main"}).string)
-    # print(file_name, "\n", label)
 
     # Description
-    sender_name = ""
-    name_itidata_id = None
-    sender_act = header.find("correspAction", {"type": "sent"})
-    person = sender_act.find_all("persName")
-    if len(person) > 1:
-        print(file_name, person)
-
-    if sender_act is not None and sender_act.find("persName") is not None:
-        if sender_act.find("idno"):
-            name_itidata_id = sender_act.find("idno").string
-            sender_act.idno.decompose()
-        sender_name = sender_act.find("persName").string
-        # print(sender_name)
-    else:
-        sender_name = sender_act.find("orgName").string
-    if sender_name is None or sender_name.strip() == "":
-        sender_name = 'Unknown'
-        print("ERROR: NO SENDER!", file_name)
-    sender_name = xm.normalize(sender_name)
-    sender_name_namespaced = sender_name
-    [sender_name_namespaced := sender_name_namespaced.replace(string, "") for string in replace_string_list]
-
-    desc_eng = xm.normalize(sender_name) + ", " + "letter, " + "Epistulae. Pars II. 1534–1553, 2022"
+    desc_eng = label.split(" to ")[0] + ", " + "letter, " + "Epistulae. Pars I. 1523–1533, 2018"
     desc_hun = desc_eng.replace("letter", "levél")
-    # print(desc_eng)
+
+    # Senders
+    itidata_dict_p7_list = []
+    itidata_dict_p37_list = []
+    sender_act = header.find("correspAction", {"type": "sent"})
+    for person_name_tag in sender_act.find_all("persName"):
+        if person_name_tag.find("idno"):
+            itidata_dict_p7_list.append(person_name_tag.idno.string.strip())
+        else:
+            sender_name = xm.normalize(person_name_tag.string)
+            sender_name_namespaced = sender_name
+            [sender_name_namespaced := sender_name_namespaced.replace(string, "") for string in replace_string_list]
+            if sender_name_namespaced.strip() in itidata_names_dict["Unidentified"]:
+                itidata_dict_p37_list.append(sender_name)
+            else:
+                itidata_dict_p7_list.append("P39:" + sender_name)
+    for org_name_tag in sender_act.find_all("orgName"):
+        if org_name_tag.string.strip().replace(" ", "") != "":
+            itidata_dict_p7_list.append(xm.normalize("P39:" + org_name_tag.string))
+
+    # Receivers
+    itidata_dict_p80_list = []
+    recieved_act = header.find("correspAction", {"type": "recieved"})
+    for person_name_tag in recieved_act.find_all("persName"):
+        if person_name_tag.find("idno"):
+            itidata_dict_p80_list.append(person_name_tag.idno.string.strip())
+        else:
+            itidata_dict_p80_list.append(xm.normalize("P39:" + person_name_tag.string.strip()))
+    for org_name_tag in recieved_act.find_all("orgName"):
+        if org_name_tag.string.strip().replace(" ", "") != "":
+            itidata_dict_p80_list.append(xm.normalize("P39:" + org_name_tag.string.strip()))
 
     # Series ordinal
     series_num = ""
@@ -199,16 +204,9 @@ for parsed, path in xm.get_filenames([folder_list[1]]):
     itidata_dict['Den'] = desc_eng
     itidata_dict['P1'] = "P26"  # Instance of : letter
     itidata_dict['P41'] = "P26"  # Genre: letter
-    if name_itidata_id is not None:
-        itidata_dict['P7'] = name_itidata_id
-        itidata_dict['P37'] = None
-    else:
-        if sender_name_namespaced.strip() in itidata_names_dict["Unidentified"]:
-            itidata_dict['P7'] = None
-            itidata_dict['P37'] = sender_name
-        else:
-            itidata_dict['P7'] = "P39:" + sender_name
-            itidata_dict['P37'] = None
+    itidata_dict['P7'] = ";".join(itidata_dict_p7_list)
+    itidata_dict['P37'] = ";".join(itidata_dict_p37_list)
+    itidata_dict['P80'] = ";".join(itidata_dict_p80_list)
     itidata_dict['P44'] = "Q469915"  # Epistulae. Pars II. 1534–1553
     itidata_dict['P57'] = "+2022-00-00T00:00:00Z/9"
     itidata_dict['P106'] = series_num
