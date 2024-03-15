@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 import xml_methods as xm
 import re
 
@@ -14,6 +16,16 @@ with open("Olahus_letters_itidata_2.csv", "w", encoding="utf-8") as f:
 
 # Create dictionary for the ITIdata statements
 itidata_dict = dict()
+
+# Parse every XML and populate dict for lettet-to-letter references
+related_item_ref_dict = defaultdict(set)
+pid_error_list = []
+for parsed, path in xm.get_filenames(folder_list):
+    for ref_urls in [related_item.find_all("ref") for related_item in parsed.find_all("relatedItem")]:
+        for ref_url in ref_urls:
+            ref_target = xm.normalize(ref_url.get("target").replace("http:/digiphil.hu/o:olahus.tei.", ""))
+            if ref_target != "":
+                related_item_ref_dict[path.split("/")[-1]].add(ref_target)
 
 # # Parse every XML
 # for parsed, path in xm.get_filenames([folder_list[0]]):
@@ -83,6 +95,7 @@ itidata_dict = dict()
 #     # Write dictionary to a row of csv
 #     xm.write_to_csv(itidata_dict, "Olahus_letters_itidata_1.csv")
 
+
 # Parse every XML
 for parsed, path in xm.get_filenames([folder_list[1]]):
     file_name = path.split("/")[-1]
@@ -90,7 +103,7 @@ for parsed, path in xm.get_filenames([folder_list[1]]):
 
     # Get labels
     label = xm.normalize(header.find("title", {"type": "main"}).string)
-    print(file_name, label)
+    # print(file_name, "\n", label)
 
     # Description
     sender_name = "Unknown"
@@ -99,12 +112,16 @@ for parsed, path in xm.get_filenames([folder_list[1]]):
         if sender_act.find("idno"):
             name_itidata_id = sender_act.find("idno").string
             sender_act.idno.decompose()
-        sender_name = sender_act.find("persName").string
-        print(sender_name)
-        if (sender_name is None or sender_name.strip() == "") and sender_act.find("orgName") is not None:
-            sender_name = sender_act.find("orgName").string
+        if sender_act.find("persName"):
+            sender_name = sender_act.find("persName").string
+        if sender_act.find("orgName") is not None:
+            if sender_act.find("orgName").string is not None:
+                org_name = sender_act.find("orgName").string
+        if sender_name is None or sender_name.strip() == "":
+            sender_name = org_name
+        sender_name = xm.normalize(sender_name)
 
-    desc_eng = xm.normalize(sender_name) + ", " + "letter, " + "Epistulae. Pars I. 1523–1533, 2018"
+    desc_eng = xm.normalize(sender_name) + ", " + "letter, " + "Epistulae. Pars II. 1534–1553, 2022"
     desc_hun = desc_eng.replace("letter", "levél")
     # print(desc_eng)
 
@@ -114,13 +131,13 @@ for parsed, path in xm.get_filenames([folder_list[1]]):
     series_num = ""
     series_num = header.find("title", {"type": "num"}).string.strip()
     if not series_num.isdigit():
-        print("SERIES NUMBER IS NOT NUMERIC!", file_name)
+        print("ERROR: SERIES NUMBER IS NOT NUMERIC!", file_name)
         # print(page_num, series_num)
 
     # PID
     pid = header.find("idno", {"type": "PID"}).string.strip()[2:]
     if file_name.rstrip('.xml') != pid.replace("olahus.tei.", ""):
-        print("PID ERROR: ", file_name, pid)
+        pid_error_list.append((file_name.rstrip('.xml'), pid.replace("olahus.tei.", "")))
 
     # Populate dictionary
     itidata_dict['Lhu'] = label
@@ -139,3 +156,12 @@ for parsed, path in xm.get_filenames([folder_list[1]]):
 
     # Write dictionary to a row of csv
     xm.write_to_csv(itidata_dict, "Olahus_letters_itidata_2.csv")
+
+# for items in pid_error_list:
+#     for key, value in related_item_ref_dict.items():
+#         if items[0] in value or items[1] in value:
+#             print("PID ERROR WITH REF PROBLEM: ", items, key, value)
+#     print("PID ERROR: ", items)
+
+for key, value in related_item_ref_dict.items():
+    print(key, "\t", value)
