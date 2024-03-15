@@ -162,6 +162,3 @@ for parsed, path in xm.get_filenames([folder_list[1]]):
 #         if items[0] in value or items[1] in value:
 #             print("PID ERROR WITH REF PROBLEM: ", items, key, value)
 #     print("PID ERROR: ", items)
-
-for key, value in related_item_ref_dict.items():
-    print(key, "\t", value)
