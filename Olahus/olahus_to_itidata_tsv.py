@@ -122,8 +122,8 @@ for parsed, path in xm.get_filenames([folder_list[0]]):
     itidata_dict['Len'] = label
     itidata_dict['Dhu'] = desc_hun
     itidata_dict['Den'] = desc_eng
-    itidata_dict['P1'] = "P26"  # Instance of : letter
-    itidata_dict['P41'] = "P26"  # Genre: letter
+    itidata_dict['P1'] = "Q26"  # Instance of : letter
+    itidata_dict['P41'] = "Q26"  # Genre: letter
     itidata_dict['P7'] = ";".join(itidata_dict_p7_list)
     itidata_dict['P37'] = ";".join(itidata_dict_p37_list)
     itidata_dict['P80'] = ";".join(itidata_dict_p80_list)
@@ -202,8 +202,8 @@ for parsed, path in xm.get_filenames([folder_list[1]]):
     itidata_dict['Len'] = label
     itidata_dict['Dhu'] = desc_hun
     itidata_dict['Den'] = desc_eng
-    itidata_dict['P1'] = "P26"  # Instance of : letter
-    itidata_dict['P41'] = "P26"  # Genre: letter
+    itidata_dict['P1'] = "Q26"  # Instance of : letter
+    itidata_dict['P41'] = "Q26"  # Genre: letter
     itidata_dict['P7'] = ";".join(itidata_dict_p7_list)
     itidata_dict['P37'] = ";".join(itidata_dict_p37_list)
     itidata_dict['P80'] = ";".join(itidata_dict_p80_list)
