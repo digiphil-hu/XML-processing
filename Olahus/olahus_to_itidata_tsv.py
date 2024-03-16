@@ -94,6 +94,25 @@ for parsed, path in xm.get_filenames([folder_list[0]]):
         if org_name_tag.string.strip().replace(" ", "") != "":
             itidata_dict_p80_list.append(xm.normalize("P39:" + org_name_tag.string.strip()))
 
+    # Creation place
+    if header.creation.find("placeName"):
+        if header.creation.placeName.find("idno"):
+            creation_place_idno = header.creation.placeName.idno.string.strip()
+
+    # Creation date
+    creation_date = header.creation.find("date")
+    if creation_date:
+        creation_date_when = header.creation.date.get("when")
+        if creation_date_when:
+            if creation_date_when.isnumeric() and creation_date_when.startswith("15") and len(creation_date_when) == 4:
+                pass
+            else:
+                pattern = r'15\d{2}-[01]\d-[0-3]\d'
+                if bool(re.match(pattern, creation_date_when)) is False:
+                    print("INCORRECT DATE FORMAT:", creation_date_when, file_name)
+        else:
+            print("MISSING DATE WHEN: ", creation_date, file_name)
+
     # Page and series ordinal
     page_num = ""
     pattern = r'^\d+([–]\d+)?\.$'
@@ -127,6 +146,8 @@ for parsed, path in xm.get_filenames([folder_list[0]]):
     itidata_dict['P7'] = ";".join(itidata_dict_p7_list)
     itidata_dict['P37'] = ";".join(itidata_dict_p37_list)
     itidata_dict['P80'] = ";".join(itidata_dict_p80_list)
+    itidata_dict['P85'] = "" if creation_place_idno is None else creation_place_idno
+    itidata_dict['P218'] = "" if creation_date_when is None else creation_date_when
     itidata_dict['P44'] = "Q469927"  # Epistulae. Pars I. 1523–1533
     itidata_dict['P57'] = "+2018-00-00T00:00:00Z/9"
     itidata_dict['P49'] = page_num
