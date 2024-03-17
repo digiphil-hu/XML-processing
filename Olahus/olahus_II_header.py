@@ -9,26 +9,26 @@ with open("import_test_olahus_plus_item_id.csv", "r", encoding="utf-8") as csvfi
     reader = csv.reader(csvfile, delimiter="\t")
     for row in reader:
         letter_itidata_id[row[17]] = row[16].split(".")[-1]
-# for key, value in letter_itidata_id.items():
-#     print(key, value)
+for key, value in letter_itidata_id.items():
+    print(key, value)
 
 # List of folders whete the TEI XML's are found
-folder_list = ["/home/eltedh/GitHub/Olahus/Olahus 1"]
+folder_list = ["/home/eltedh/GitHub/Olahus/Olahus 2"]
 
-with open("header_pattern_1.xml", "r", encoding="utf-8") as xml_file:
+with open("header_pattern_2.xml", "r", encoding="utf-8") as xml_file:
     soup = BeautifulSoup(xml_file, "xml")
     new_header = soup.find("teiHeader")
 
 for parsed, path in xml.get_filenames(folder_list):
-    with open("header_pattern_1.xml", "r", encoding="utf-8") as xml_file:
+    with open("header_pattern_2.xml", "r", encoding="utf-8") as xml_file:
         soup = BeautifulSoup(xml_file, "xml")
         new_header = soup.find("teiHeader")
     old_header = parsed.find("teiHeader")
     file_name = path.split("/")[-1]
 
     # Title type num
-    num = old_header.find("biblScope", {"unit": "entry"}).string.strip()
-    new_header.titleStmt.find("title", {"type": "num"}).string = num
+    num = old_header.find("title", {"type": "num"}).string.strip()
+    new_header.find("title", {"type": "num"}).string = num
     # print(new_header.find("title", {"type": "num"}))
 
     # Title type main
@@ -56,9 +56,11 @@ for parsed, path in xml.get_filenames(folder_list):
     for idno_tag in new_header.publicationStmt.find_all("idno", {"type": "ITIdata"}):
         if idno_tag.text == "letter_itidata":
             idno_tag.string = letter_id
+    # print(file_name, letter_id)
 
     # GitHub link
-    new_header.publicationStmt.find("ref", target=True)["target"] = "https://github.com/digiphil-hu/nicolaus-olahus-epistulae-pars-I/blob/main/" + file_name
+    new_header.publicationStmt.find("ref", target=True)[
+        "target"] = "https://github.com/digiphil-hu/nicolaus-olahus-epistulae-pars-II/blob/main/" + file_name
     # print(new_header.publicationStmt.find("ref", target=True))
 
     # notesStmt: delete empty note, re, relatedItem
@@ -80,7 +82,8 @@ for parsed, path in xml.get_filenames(folder_list):
     new_header.fileDesc.notesStmt.replace_with(notes_stms)
 
     # msDesc
-    new_header.sourceDesc.msDesc.replace_with(old_header.sourceDesc.msDesc)
+    if old_header.sourceDesc.msDesc:
+        new_header.sourceDesc.msDesc.replace_with(old_header.sourceDesc.msDesc)
 
     # listWit
     if old_header.sourceDesc.find("listWit"):
@@ -88,9 +91,9 @@ for parsed, path in xml.get_filenames(folder_list):
     else:
         new_header.sourceDesc.listWit.decompose()
 
-    # biblScope
-    new_header.find("biblScope", {"unit": "entry"}).string = old_header.find("biblScope", {"unit": "entry"}).string
-    new_header.find("biblScope", {"unit": "page"}).string = old_header.find("biblScope", {"unit": "page"}).string
+    # # biblScope
+    # new_header.find("biblScope", {"unit": "entry"}).string = old_header.find("biblScope", {"unit": "entry"}).string
+    # new_header.find("biblScope", {"unit": "page"}).string = old_header.find("biblScope", {"unit": "page"}).string
 
     # encodingDesc
     if "sz" not in file_name:
@@ -117,4 +120,3 @@ for parsed, path in xml.get_filenames(folder_list):
 
     with open("Olahus_name_id/" + file_name, "w", encoding="utf8") as xml_file:
         xml_file.write(xml.prettify_soup(parsed))
-
