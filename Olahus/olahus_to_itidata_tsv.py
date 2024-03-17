@@ -107,7 +107,7 @@ for parsed, path in xm.get_filenames([folder_list[0]]):
             if creation_date_when.isnumeric() and creation_date_when.startswith("15") and len(creation_date_when) == 4:
                 pass
             else:
-                pattern = r'15\d{2}-[01]\d-[0-3]\d'
+                pattern = r'15\d{2}-[01]\d(-[0-3]\d)?'
                 if bool(re.match(pattern, creation_date_when)) is False:
                     print("INCORRECT DATE FORMAT:", creation_date_when, file_name)
         else:
@@ -132,9 +132,13 @@ for parsed, path in xm.get_filenames([folder_list[0]]):
         print("NUM ERROR: ", file_name)
 
     # PID
-    pid = xm.normalize(header.find("idno", {"type": "PID"}).string.strip()[2:])
+    pid = header.find("idno", {"type": "PID"}).string.strip()
+    pid = xm.normalize(pid).replace("o:", "")
     if file_name.rstrip('.xml') != pid.replace("olahus.tei.", ""):
         print("PID ERROR: ", file_name, pid)
+
+    if creation_date_when.replace("-", "") != pid.split(".")[-1].split("_")[0].replace("0000", ""):
+        print(pid.split(".")[-1], "\t", creation_date)
 
     # Populate dictionary
     itidata_dict['Lhu'] = label
@@ -147,7 +151,7 @@ for parsed, path in xm.get_filenames([folder_list[0]]):
     itidata_dict['P37'] = ";".join(itidata_dict_p37_list)
     itidata_dict['P80'] = ";".join(itidata_dict_p80_list)
     itidata_dict['P85'] = "" if creation_place_idno is None else creation_place_idno
-    itidata_dict['P218'] = "" if creation_date_when is None else creation_date_when
+    itidata_dict['P218'] = "" if creation_date_when is None else xm.format_iso_date_to_itidata(creation_date_when)
     itidata_dict['P44'] = "Q469927"  # Epistulae. Pars I. 1523–1533
     itidata_dict['P57'] = "+2018-00-00T00:00:00Z/9"
     itidata_dict['P49'] = page_num
@@ -205,6 +209,26 @@ for parsed, path in xm.get_filenames([folder_list[1]]):
         if org_name_tag.string.strip().replace(" ", "") != "":
             itidata_dict_p80_list.append(xm.normalize("P39:" + org_name_tag.string.strip()))
 
+        # Creation place
+    if header.creation.find("placeName"):
+        if header.creation.placeName.find("idno"):
+            creation_place_idno = header.creation.placeName.idno.string.strip()
+
+        # Creation date
+    creation_date = header.creation.find("date")
+    if creation_date:
+        creation_date_when = header.creation.date.get("when")
+        if creation_date_when:
+            if creation_date_when.isnumeric() and creation_date_when.startswith("15") and len(creation_date_when) == 4:
+                pass
+            else:
+                pattern = r'15\d{2}-[01]\d(-[0-3]\d)?'
+                if bool(re.match(pattern, creation_date_when)) is False:
+                    print("INCORRECT DATE FORMAT:", creation_date_when, file_name)
+        else:
+            print("MISSING DATE WHEN: ", creation_date, file_name)
+
+
     # Series ordinal
     series_num = ""
     series_num = header.find("title", {"type": "num"}).string.strip()
@@ -213,10 +237,14 @@ for parsed, path in xm.get_filenames([folder_list[1]]):
         # print(page_num, series_num)
 
     # PID
-    pid = xm.normalize(header.find("idno", {"type": "PID"}).string.strip()[2:])
+    pid = header.find("idno", {"type": "PID"}).string.strip()
+    pid = xm.normalize(pid).replace("o:", "")
     if file_name.rstrip('.xml') != pid.replace("olahus.tei.", ""):
         # pid_error_list.append((file_name.rstrip('.xml'), pid.replace("olahus.tei.", "")))
         print("PID ERROR: ", file_name, pid)
+
+    if creation_date_when.replace("-", "") != pid.split(".")[-1].split("_")[0].replace("0000", ""):
+        print(pid.split(".")[-1], "\t", creation_date)
 
     # Populate dictionary
     itidata_dict['Lhu'] = label
@@ -228,6 +256,8 @@ for parsed, path in xm.get_filenames([folder_list[1]]):
     itidata_dict['P7'] = ";".join(itidata_dict_p7_list)
     itidata_dict['P37'] = ";".join(itidata_dict_p37_list)
     itidata_dict['P80'] = ";".join(itidata_dict_p80_list)
+    itidata_dict['P85'] = "" if creation_place_idno is None else creation_place_idno
+    itidata_dict['P218'] = "" if creation_date_when is None else xm.format_iso_date_to_itidata(creation_date_when)
     itidata_dict['P44'] = "Q469915"  # Epistulae. Pars II. 1534–1553
     itidata_dict['P57'] = "+2022-00-00T00:00:00Z/9"
     itidata_dict['P106'] = series_num

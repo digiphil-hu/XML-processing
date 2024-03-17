@@ -203,6 +203,25 @@ def format_date(input_date):
         return "Invalid date format"
 
 
+def format_iso_date_to_itidata(date_str):
+    """
+    Format date from ISO format (yyyy-mm-dd, yyyy-mm, yyyy) to wikidata fromat with precision: /9-11
+    :param date_str:
+    :return: wikidata formatted date
+    """
+    # Remove zero mm or dd and split the date string into components
+    parts = date_str.replace("-00", "").split('-')
+
+    # Determine the level of detail provided in the date
+    if len(parts) == 1 and parts[0]:  # Only year is provided
+        return f"+{parts[0]}-00-00T00:00:00Z/9"
+    elif len(parts) == 2 and all(parts):  # Year and month are provided
+        return f"+{parts[0]}-{parts[1]}-00T00:00:00Z/10"
+    elif len(parts) == 3 and all(parts):  # Year, month, and day are provided
+        return f"+{parts[0]}-{parts[1]}-{parts[2]}T00:00:00Z/11"
+    else:
+        return "Invalid input"
+
 def check_list_index(index_number, list_to_check):
     try:
         list_to_check[index_number]

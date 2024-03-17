@@ -23,6 +23,7 @@ def create_logger(logname):
 WDI_DICT = {'P1': wdi_core.WDItemID,    # TODO: az aktuális fejlécnek megfelellően bővíthető
             'P7': wdi_core.WDItemID,
             'P80': wdi_core.WDItemID,
+            'P85': wdi_core.WDItemID
             'P41': wdi_core.WDItemID,
             'P44': wdi_core.WDItemID,
             'P49': wdi_core.WDString,
@@ -30,6 +31,7 @@ WDI_DICT = {'P1': wdi_core.WDItemID,    # TODO: az aktuális fejlécnek megfelel
             'P37': wdi_core.WDString,
             # 'P18': wdi_core.WDMonolingualText,
             'P57': wdi_core.WDTime,
+            'P218': wdi_core.WDTime
             'P241': wdi_core.WDUrl,
             'P242': wdi_core.WDUrl
             }  # hogy lehessen variálni, ha kell (még túl lehetne tolni úgy a jövőben, hogy ez egy config fájlban van
