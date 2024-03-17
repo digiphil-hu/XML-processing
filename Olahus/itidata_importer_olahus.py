@@ -26,7 +26,7 @@ WDI_DICT = {'P1': wdi_core.WDItemID,    # TODO: az aktuális fejlécnek megfelel
             'P85': wdi_core.WDItemID,
             'P41': wdi_core.WDItemID,
             'P44': wdi_core.WDItemID,
-            'P49': wdi_core.WDString,
+            # 'P49': wdi_core.WDString,
             'P106': wdi_core.WDString,
             'P37': wdi_core.WDString,
             # 'P18': wdi_core.WDMonolingualText,

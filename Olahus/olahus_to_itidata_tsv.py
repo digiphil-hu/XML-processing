@@ -175,7 +175,7 @@ for parsed, path in xm.get_filenames([folder_list[1]]):
     label = xm.normalize(header.find("title", {"type": "main"}).string)
 
     # Description
-    desc_eng = label.split(" to ")[0] + ", " + "letter, " + "Epistulae. Pars I. 1523–1533, 2018"
+    desc_eng = label.split(" to ")[0] + ", " + "letter, " + "Epistulae. Pars II. 1534–1553, 2022"
     desc_hun = desc_eng.replace("letter", "levél")
 
     # Senders
