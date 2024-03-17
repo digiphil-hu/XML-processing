@@ -222,6 +222,7 @@ def format_iso_date_to_itidata(date_str):
     else:
         return "Invalid input"
 
+
 def check_list_index(index_number, list_to_check):
     try:
         list_to_check[index_number]

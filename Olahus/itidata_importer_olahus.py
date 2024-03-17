@@ -23,7 +23,7 @@ def create_logger(logname):
 WDI_DICT = {'P1': wdi_core.WDItemID,    # TODO: az aktuális fejlécnek megfelellően bővíthető
             'P7': wdi_core.WDItemID,
             'P80': wdi_core.WDItemID,
-            'P85': wdi_core.WDItemID
+            'P85': wdi_core.WDItemID,
             'P41': wdi_core.WDItemID,
             'P44': wdi_core.WDItemID,
             'P49': wdi_core.WDString,
@@ -31,7 +31,7 @@ WDI_DICT = {'P1': wdi_core.WDItemID,    # TODO: az aktuális fejlécnek megfelel
             'P37': wdi_core.WDString,
             # 'P18': wdi_core.WDMonolingualText,
             'P57': wdi_core.WDTime,
-            'P218': wdi_core.WDTime
+            'P218': wdi_core.WDTime,
             'P241': wdi_core.WDUrl,
             'P242': wdi_core.WDUrl
             }  # hogy lehessen variálni, ha kell (még túl lehetne tolni úgy a jövőben, hogy ez egy config fájlban van
@@ -82,7 +82,7 @@ def customize_record_api_input(data_dict):
                                                               check_qualifier_equality=False, qualifiers=_qualifiers)
                         prep_name_statements.append(statemen_withqual)
                     else:
-                        # print(val_, prop_id, data_dict)
+                        print(val_, prop_id)
                         prep_name_statements.append(val_type(val_, prop_nr=prop_id, check_qualifier_equality=False))
     return data_dict, prep_name_statements
 
@@ -94,7 +94,7 @@ def create_new_item_simple_tsv(header_dict, item_statements):
     api_url = 'https://itidata.abtk.hu/w/api.php'
     it_name = header_dict['Lhu']
     try:
-        login_instance = wdi_login.WDLogin(user="SárköziLindnerZsófia", pwd="Ww21hHc",  # TODO !!!
+        login_instance = wdi_login.WDLogin(user="SárköziLindnerZsófia", pwd="",  # TODO !!!
                                            mediawiki_api_url=api_url)
         try:
             wdPage = wdi_core.WDItemEngine(data=item_statements, mediawiki_api_url=api_url)
@@ -118,7 +118,7 @@ def create_new_item_simple_tsv(header_dict, item_statements):
 
 
 def import_main(table_f):
-    ret_file = open('import_test_olahus_plus_item_id.csv', 'w')
+    ret_file = open('import_test_olahus_plus_item_id.csv', 'a')
     # Katának: az eredeti táblázatot egészíti ki a létrehozott azonosítókkal
     for origi_line, rec_data in parse_tsv(table_f):
         rec_data_, item_statements_ = customize_record_api_input(rec_data)
