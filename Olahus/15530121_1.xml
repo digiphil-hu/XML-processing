@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-model href="http://www.tei-c.org/release/xml/tei/custom/schema/relaxng/tei_all.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?><?xml-model href="http://www.tei-c.org/release/xml/tei/custom/schema/relaxng/tei_all.rng" type="application/xml" 	schematypens="http://purl.oclc.org/dsdl/schematron"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+          <teiHeader>
+                    <fileDesc>
+                              <titleStmt>
+                                        <title type="num">841</title>
+                                        <title key="body" n="841" type="main">Miklós Oláh to Kristóf
+                                                  Batthyány (Graz, 21 January 1553)</title>
+                              </titleStmt>
+                              <editionStmt>
+                                        <edition>Digital critical edition</edition>
+                                        <respStmt>
+                                                  <resp>editor</resp>
+                                                  <persName>
+                                                  <surname>Szilágyi</surname>
+                                                  <forename>Emőke</forename>
+                                                  <forename>Rita</forename>
+                                                  <idno type="ITIdata">Q469914</idno>
+                                                  <idno type="ORCID">0000-0001-9504-5188</idno>
+                                                  </persName>
+                                        </respStmt>
+                                        <respStmt>
+                                                  <resp>editor in chief</resp>
+                                                  <persName>
+                                                  <surname>Palkó</surname>
+                                                  <forename>Gábor</forename>
+                                                  <idno type="ITIdata">Q245084</idno>
+                                                  <idno type="ORCID">0000-0002-4394-8577</idno>
+                                                  </persName>
+                                        </respStmt>
+                                        <respStmt>
+                                                  <resp>arranged for publication</resp>
+                                                  <persName>
+                                                  <surname>Szilágyi</surname>
+                                                  <forename>Emőke</forename>
+                                                  <forename>Rita</forename>
+                                                  <idno type="ITIdata">Q469914</idno>
+                                                  <idno type="ORCID">0000-0001-9504-5188</idno>
+                                                  </persName>
+                                        </respStmt>
+                                        <respStmt>
+                                                  <resp>TEI-specification</resp>
+                                                  <persName>
+                                                  <surname>Fellegi</surname>
+                                                  <forename>Zsófia</forename>
+                                                  <idno type="ITIdata">Q349971</idno>
+                                                  <idno type="ORCID">0000-0001-9199-1759</idno>
+                                                  </persName>
+                                        </respStmt>
+                                        <respStmt>
+                                                  <resp>creator</resp>
+                                                  <orgName>DigiPhil <ref type="url"
+                                                  >http://digiphil.hu</ref></orgName>
+                                        </respStmt>
+                              </editionStmt>
+                              <publicationStmt>
+                                        <publisher>
+                                                  <orgName>HUN-REN Bölcsészettudományi
+                                                  Kutatóközpont, Irodalomtudományi Intézet <idno
+                                                  type="ITIdata">Q2256</idno></orgName>
+                                                  <ref type="url">https://iti.abtk.hu</ref>
+                                        </publisher>
+                                        <pubPlace>Budapest<idno type="ITIdata">Q93</idno></pubPlace>
+                                        <date when="2024">2024</date>
+                                        <availability>
+                                                  <p>CC BY-NC-ND 4.0 DEED:
+                                                  Attribution-NonCommercial-NoDerivs 4.0
+                                                  International<ref type="url"
+                                                  >https://creativecommons.org/licenses/by-nc-nd/4.0/</ref></p>
+                                        </availability>
+                                        <idno type="PID">olahus.tei.15530121_1</idno>
+                                        <idno type="ITIdata">Q473497</idno>
+                                        <ref
+                                                  target="https://github.com/digiphil-hu/nicolaus-olahus-epistulae-pars-II/blob/main/15530121_1.xml"
+                                                  >The TEI XML transcript of the letter in the
+                                                  DigiPhil GitHub repository.</ref>
+                              </publicationStmt>
+                              <seriesStmt>
+                                        <title level="s">Bibliotheca Scriptorum Medii Recentisque
+                                                  Aevorum: Series nova</title>
+                                        <respStmt>
+                                                  <resp>series editor</resp>
+                                                  <persName>
+                                                  <surname>Békés</surname>
+                                                  <forename>Enikő</forename>
+                                                  <idno type="ITIdata">Q330658</idno>
+                                                  </persName>
+                                                  <persName>
+                                                  <surname>Szörényi</surname>
+                                                  <forename>László</forename>
+                                                  <idno type="ITIdata">Q49630</idno>
+                                                  </persName>
+                                        </respStmt>
+                                        <biblScope unit="volume">XIX/II.</biblScope>
+                                        <idno type="ISSN">0133-6711</idno>
+                                        <idno type="ITIdata">Q469925</idno>
+                              </seriesStmt>
+                              <notesStmt>
+                                        <note type="critIntro">
+                                                  <p><hi rend="italic">Notes:</hi> Autograph letter
+                                                  with signature and seal. </p>
+                                        </note>
+                              </notesStmt>
+                              <sourceDesc>
+                                        <msDesc>
+                                                  <msIdentifier>
+                                                  <country>Hungary</country>
+                                                  <settlement>Budapest</settlement>
+                                                  <institution>MNL OL</institution>
+                                                  <repository>P 1314 – No. 34394.</repository>
+                                                  <idno/>
+                                                  <msName/>
+                                                  </msIdentifier>
+                                                  <msPart style="letter">
+                                                  <msIdentifier/>
+                                                  <physDesc>
+                                                  <objectDesc>
+                                                  <supportDesc>
+                                                  <extent>
+                                                  <measure type="quantity" unit="folio"/>
+                                                  <dimensions unit="mm">
+                                                  <height/>
+                                                  <width/>
+                                                  </dimensions>
+                                                  </extent>
+                                                  <condition>
+                                                  <p/>
+                                                  </condition>
+                                                  </supportDesc>
+                                                  </objectDesc>
+                                                  </physDesc>
+                                                  </msPart>
+                                        </msDesc>
+                                        <bibl>
+                                                  <title level="m">Nicolaus Olahus: Epistulae. Pars
+                                                  II. 1534–1553</title>
+                                                  <idno type="ISBN">978-615-6255-40-2</idno>
+                                                  <idno type="url"
+                                                  >https://www.reciti.hu/2023/7807</idno>
+                                                  <publisher>
+                                                  <orgName>reciti</orgName>
+                                                  <ref type="url">https://www.reciti.hu/</ref>
+                                                  </publisher>
+                                                  <pubPlace>Budapest<idno type="ITIdata"
+                                                  >Q93</idno></pubPlace>
+                                                  <respStmt>
+                                                  <resp>editor</resp>
+                                                  <persName>
+                                                  <surname>Szilágyi</surname>
+                                                  <forename>Emőke</forename>
+                                                  <forename>Rita</forename>
+                                                  <idno type="ITIdata">Q469914</idno>
+                                                  </persName>
+                                                  </respStmt>
+                                                  <respStmt>
+                                                  <resp>lector</resp>
+                                                  <persName>
+                                                  <surname>Békés</surname>
+                                                  <forename>Enikő</forename>
+                                                  <idno type="ITIdata">Q330658</idno>
+                                                  </persName>
+                                                  <persName>
+                                                  <surname>Bolonyai</surname>
+                                                  <forename>Gábor</forename>
+                                                  <idno type="ITIdata">Q55828</idno>
+                                                  </persName>
+                                                  <persName>
+                                                  <surname>Faragó</surname>
+                                                  <forename>Dávid</forename>
+                                                  </persName>
+                                                  <persName>
+                                                  <surname>Fazekas</surname>
+                                                  <forename>István</forename>
+                                                  </persName>
+                                                  <persName>
+                                                  <surname>Kasza</surname>
+                                                  <forename>Péter</forename>
+                                                  </persName>
+                                                  <persName>
+                                                  <surname>Péterfi</surname>
+                                                  <forename>Bence</forename>
+                                                  </persName>
+                                                  </respStmt>
+                                                  <respStmt>
+                                                  <resp>lector of the english translation</resp>
+                                                  <persName>
+                                                  <surname>Futász</surname>
+                                                  <forename>Réka</forename>
+                                                  </persName>
+                                                  </respStmt>
+                                                  <date when="2022">2022</date>
+                                                  <ref
+                                                  target="https://github.com/digiphil-hu/nicolaus-olahus-epistulae-pars-II"
+                                                  type="url">The TEI XML trancripts of the edition
+                                                  in the DigiPhil GitHub repository.</ref>
+                                                  <idno type="DOI"
+                                                  >https://doi.org/10.5281/zenodo.8011468</idno><idno
+                                                  type="ITIdata">Q469915</idno>
+                                        </bibl>
+                              </sourceDesc>
+                    </fileDesc>
+                    <profileDesc>
+                              <langUsage>
+                                        <language ident="la">latin</language>
+                              </langUsage>
+                              <textClass>
+                                        <keywords corresp="Letter" scheme="GETTY_AAT">
+                                                  <term>Letter<idno type="GETTY_AAT"
+                                                  >GETTY_AAT:300026879</idno></term>
+                                        </keywords>
+                              </textClass>
+                              <creation>
+                                        <date when="1553-01-21">21 January 1553</date>
+                                        <placeName>Graz<idno type="ITIdata"
+                                                  >Q22712</idno></placeName>
+                              </creation>
+                              <correspDesc>
+                                        <correspAction type="sent">
+                                                  <persName>Miklós Oláh<idno type="ITIdata"
+                                                  >Q244878</idno></persName>
+                                        </correspAction>
+                                        <correspAction type="recieved">
+                                                  <persName>Kristóf Batthyány<idno type="ITIdata"
+                                                  >Q141481</idno></persName>
+                                        </correspAction>
+                              </correspDesc>
+                    </profileDesc>
+          </teiHeader>
+          <text>
+                    <body>
+                              <div style="handwritten" type="letter" xml:id="d.1">
+                                        <head type="title">Miklós Oláh to Kristóf Batthyány (Graz,
+                                                  21 January 1553)</head>
+                                        <floatingText type="regesta">
+                                                  <body>
+                                                  <p xml:id="reg.p.1">Oláh has revised the royal
+                                                  letter addressed to the Councillors of the Chamber
+                                                  and attaches it to this letter. He is also trying
+                                                  to do his best in everything else.</p>
+                                                  </body>
+                                        </floatingText>
+                                        <pb/>
+                                        <p xml:id="p.1">Magnifice Domine et Amice Honorandissime,
+                                                  salutem et mei commendationem!</p>
+                                        <p xml:id="p.2">Litteras regias ad camerarios feci reformari
+                                                  et cum praesentibus ad Dominationem Vestram
+                                                  remisi. In aliis etiam negotiis eiusdem, in quibus
+                                                  nuper scripserat, habebo curam et videbo, quid
+                                                  praestare possim, faciam, quaecumque mihi erunt
+                                                  possibilia. Dominationem Vestram bene valere opto. </p>
+                                        <p xml:id="p.3">Ex <placeName>Gracz</placeName> 21. Ianuarii
+                                                  1553.</p>
+                                        <p xml:id="p.4">
+                                                  <seg type="signature">Vester Agriensis etc. manu
+                                                  propria</seg>
+                                        </p>
+                                        <pb/>
+                              </div>
+                              <div style="handwritten" type="verso" xml:id="d.2">
+                                        <head>On the outer side:</head>
+                                        <p xml:id="p.5">Magnifico domino Christophoro Bathyany
+                                                  magistro pincernarum sacratissimae maiestatis
+                                                  regiae etc. domino et amico honorandissimo.</p>
+                              </div>
+                    </body>
+          </text>
+</TEI>
