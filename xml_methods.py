@@ -4,6 +4,7 @@ import re
 from collections import Counter
 from datetime import datetime
 from bs4 import BeautifulSoup
+import lxml
 
 import get_geo_namespace_id_itidata
 

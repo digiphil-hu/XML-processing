@@ -8,7 +8,7 @@ with open('manuscript_to_itidata.csv', 'w', encoding='utf8') as f:
     pass
 
 with open("itidata_letters_no_manuscript.csv", "r", encoding="utf8") as letters_list:
-    with open("/home/eltedh/PycharmProjects/XML-processing/AJOM17_18_19/xml_header_tsv_manuscript.tsv", "r",
+    with open("/home/pg/Documents/GitHub/XML-processing/AJOM17_18_19/xml_header_tsv_manuscript.tsv", "r",
               encoding="utf8") as xml_tsv:
         letters_reader = csv.reader(letters_list, delimiter="\t")
         xml_tsv_reader = csv.reader(xml_tsv, delimiter="\t")
@@ -19,7 +19,7 @@ with open("itidata_letters_no_manuscript.csv", "r", encoding="utf8") as letters_
             letter_pid = row[1]
             letter_json = get_eng_hun_item_labels_from_itidata(letter_id, what_do_yo_need="json")
             xml_tsv_row = [rows for rows in xml_tsv_list if rows[2] == letter_pid]
-            print(f'Letter id: {letter_id}, PID: {letter_pid}, {xml_tsv_row[0][2]}')
+            # print(f'Letter id: {letter_id}, PID: {letter_pid}, {xml_tsv_row[0][2]}')
 
             manuscript_dict["P1"] = "Q15"  # Instance of: manuscript
             manuscript_dict['P41'] = "Q26"  # Genre: letter
@@ -33,14 +33,14 @@ with open("itidata_letters_no_manuscript.csv", "r", encoding="utf8") as letters_
             try:
                 if xml_tsv_row[0][7] != letter_json["entities"][letter_id]["claims"]["P7"][0]\
                         ["mainsnak"]["datavalue"]["value"]["id"]:
-                    print("P7 MISSMACH!")
+                    print(f'Letter id: {letter_id}, PID: {letter_pid}, {xml_tsv_row[0][2]}', "P7 MISSMACH!")
             except:
                 pass
             manuscript_dict['P80'] = xml_tsv_row[0][8]
             try:
                 if xml_tsv_row[0][8] != letter_json["entities"][letter_id]["claims"]["P80"][0]\
                         ["mainsnak"]["datavalue"]["value"]["id"]:
-                    print("P80 MISSMACH!")
+                    print(f'Letter id: {letter_id}, PID: {letter_pid}, {xml_tsv_row[0][2]}', "P80 MISSMACH!")
             except:
                 pass
             manuscript_dict['P85'] = xml_tsv_row[0][9]

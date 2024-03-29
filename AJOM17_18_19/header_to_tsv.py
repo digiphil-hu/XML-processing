@@ -1,21 +1,20 @@
-# This python code reads data from the TEI header of the Arany correcpondence files
+# This python code reads data from the TEI header of the Arany correspondence files
 # and formats them to be uploaded to a wiki-base instance
 import csv
-
 from xml_methods import get_filenames, revert_persname, normalize_allcaps, normalize_whitespaces, write_to_csv, \
     format_date, convert_date
 
 # Import institution names from ITIdata from csv made by SPARQL query.
 with open(
-        "/home/eltedh/PycharmProjects/XML-processing/AJOM17_18_19/AJOM_itidata/itidata_query_manuscript_collection.csv",
+        "/home/pg/Documents/GitHub/XML-processing/AJOM17_18_19/AJOM_itidata/itidata_query_manuscript_collection.csv",
         "r", encoding="utf-8") as csvfile:
     csv_reader = csv.reader(csvfile, delimiter="\t")
-    insitution_name_dict = {}
+    institution_name_dict = {}
     for row in csv_reader:
-        insitution_name_dict[row[2]] = (row[0], row[3])
+        institution_name_dict[row[2]] = (row[0], row[3])
 
 
-# for key, value in insitution_name_dict.items():
+# for key, value in institution_name_dict.items():
 #     print(key, value)
 
 
@@ -59,7 +58,8 @@ def create_dictionary(soup, xml_path):
     #     if head.date.next_sibling and head.date.next_sibling.name is None:
     #         pass
     #         # if head.date.next_sibling.text.replace(r"\s", "") != "":
-    #         #     print(head.date.next_sibling.name, "///", normalize_whitespaces(head.date.next_sibling.text), "///", path.split("/")[-1])
+    #         #     print(head.date.next_sibling.name, "///", normalize_whitespaces(head.date.next_sibling.text), "///"
+    #         , path.split("/")[-1])
     # except AttributeError:
     #     pass
     #     # print("No date in <head>", path)
@@ -83,7 +83,7 @@ def create_dictionary(soup, xml_path):
     sent_action = soup.profileDesc.find("correspAction", attrs={"type": "sent"})
     if sent_action:
         sender_name_list = sent_action.find_all('persName')
-        # Chech if there are more than one sender.
+        # Check if there are more than one sender.
         # if len(sender_name_list) > 1:
         #     print("More sender in: ", path, sender_name_list)
         for sender_name in sender_name_list:
@@ -116,7 +116,7 @@ def create_dictionary(soup, xml_path):
     recipient_id = ";".join(recipient_id_list)
 
     # Extract data for 'Dhu', 'Den'
-    hu_desciption = []
+    hu_description = []
     en_description = []
     senders = []
     senders_en = []
@@ -143,9 +143,9 @@ def create_dictionary(soup, xml_path):
         edition = "Unknown edition"
         print(soup.publicationStmt.text)
 
-    hu_desciption.append(" és ".join(senders))
-    hu_desciption.append("levél")
-    hu_desciption.append(edition)
+    hu_description.append(" és ".join(senders))
+    hu_description.append("levél")
+    hu_description.append(edition)
     en_description.append(" and ".join(senders_en))
     en_description.append("letter")
     en_description.append(edition)
@@ -162,7 +162,7 @@ def create_dictionary(soup, xml_path):
     data_dict_letter['Lhu'] = lhu_value
     # data_dict_letter['Len'] = lhu_value
     data_dict_letter['date'] = normalize_whitespaces(";".join(date.text for date in head.find_all("date")))
-    data_dict_letter['Dhu'] = ", ".join(hu_desciption)
+    data_dict_letter['Dhu'] = ", ".join(hu_description)
     data_dict_letter['Den'] = ", ".join(en_description)
     data_dict_letter['P1'] = "Q26"
     data_dict_letter['P7'] = sender_id
@@ -187,9 +187,9 @@ def create_dictionary(soup, xml_path):
             institutions = soup.msDesc.msIdentifier.institution.text.split(";")
             for institution in institutions:
                 institution = normalize_whitespaces(institution).lstrip()
-                if institution in insitution_name_dict:
-                    institution_abbr.append(insitution_name_dict[institution][1])
-                    institution_id.append(insitution_name_dict[institution][0].split("/")[-1])
+                if institution in institution_name_dict:
+                    institution_abbr.append(institution_name_dict[institution][1])
+                    institution_id.append(institution_name_dict[institution][0].split("/")[-1])
                 else:
                     print("Unknown insitution name: ", institution)
         # else:
@@ -300,9 +300,9 @@ def get_text_with_supplied(soup, tag_name, children):
 
 
 # Usage
-folder_list = ["/home/eltedh/GitHub/migration-ajom-17",
-               "/home/eltedh/GitHub/migration-ajom-18",
-               "/home/eltedh/GitHub/migration-ajom-19"]
+folder_list = ["/home/pg/Documents/GitHub/migration-ajom-17",
+               "/home/pg/Documents/GitHub/migration-ajom-18",
+               "/home/pg/Documents/GitHub/migration-ajom-19"]
 with open('xml_header_tsv_letter.tsv', "w", encoding="utf8") as f1:
     with open('xml_header_tsv_manuscript.tsv', "w", encoding="utf8") as f2:
         # write header:
