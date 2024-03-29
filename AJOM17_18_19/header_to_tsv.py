@@ -1,5 +1,5 @@
 # This python code reads data from the TEI header of the Arany correcpondence files
-# and formats them to be uploaded to a wikibase instance
+# and formats them to be uploaded to a wiki-base instance
 import csv
 
 from xml_methods import get_filenames, revert_persname, normalize_allcaps, normalize_whitespaces, write_to_csv, \

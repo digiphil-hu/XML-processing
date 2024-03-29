@@ -10,6 +10,7 @@ with open("Olahus_letters_itidata_2.csv", "r", encoding="utf-8") as csv_file:
         if value > 1:
             print(key, value)
 
+
 with open("Olahus_letters_itidata_2.csv", "r", encoding="utf-8") as csv_file:
     reader = csv.reader(csv_file, delimiter="\t")
     duplum = False
