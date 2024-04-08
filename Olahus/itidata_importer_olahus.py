@@ -132,3 +132,26 @@ if __name__ == '__main__':
     tsv_fn = Path('import_test_olahus.csv')
     ITI_LOG = create_logger(f'ITIData_{tsv_fn.stem}.log')
     import_main(tsv_fn)
+
+"""
+import datetime
+from wikidataintegrator import wdi_core
+
+def handle_date_range(data_dict, prop_id):
+    if val_type == wdi_core.WDTime:
+        # Assuming data_dict[prop_id] is in the format "from:yyyy-mm-dd to:yyyy-mm-dd"
+        date_range = data_dict[prop_id].split(' to ')
+        start_date_str, end_date_str = date_range[0], date_range[1]
+
+        # Convert date strings to datetime objects
+        start_date = datetime.datetime.strptime(start_date_str, "%Y-%m-%d")
+        end_date = datetime.datetime.strptime(end_date_str, "%Y-%m-%d")
+
+        # Create WDTime objects for start and end dates
+        start_wdtime = wdi_core.WDTime(start_date, prop_nr=prop_id, precision=11)  # Precision 11 for day
+        end_wdtime = wdi_core.WDTime(end_date, prop_nr=prop_id, precision=11)
+
+        # Append both start and end WDTime objects to the list
+        prep_name_statements.append(start_wdtime)
+        prep_name_statements.append(end_wdtime)
+"""
