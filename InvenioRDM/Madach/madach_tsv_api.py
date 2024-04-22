@@ -51,10 +51,10 @@ def tsv_from_xml(parsed_xml, xml_path):
     tsv_dict['Title'] = main_title
 
     # Description
-    description = normalize(parsed_xml.publicationStmt.text)
-    # desciption = ("<p> "
-    #               + "<br> ".join(series_title) + "<br> "
-    #               + main_title + "</p")
+    description_text = normalize(parsed_xml.sourceDesc.find("title", {"type": "main"}).text)
+    description = ("<p> "
+                  + "<br>" + description_text + "<br> "
+                  + main_title + "</p")
     tsv_dict['Description'] = description
 
     # Fixed values
@@ -127,7 +127,7 @@ def tsv_from_xml(parsed_xml, xml_path):
     tsv_dict['Dates'] = [[print_edition_date, "Issued", "Publication of the print version"]]
 
     # Version
-    tsv_dict['Version'] = "1.0"
+    tsv_dict['Version'] = "2.0"
 
     # Publisher
     tsv_dict['Publisher'] = "DigiPhil"
@@ -137,7 +137,11 @@ def tsv_from_xml(parsed_xml, xml_path):
 
     # Related works #TODO GitHub repo name from XML
     github_file_link = parsed_xml.publicationStmt.find('ref', {'target': True})['target']
-    DOI = parsed_xml.find('idno', {'type': 'DOI'}).text.strip()
+    DOI = ""
+    try:
+        DOI = parsed_xml.find('idno', {'type': 'DOI'}).text.strip()
+    except AttributeError:
+        print("No DOI: ", path)
     # idno = parsed_xml.publicationStmt.find('idno', {'type': 'ITIdata'}, recursive=False)
     # idno_itidata = ("https://itidata.abtk.hu/wiki/item:" + idno.text)
     related_works = [["Is part of", DOI, "DOI", "Dataset"],
@@ -175,7 +179,9 @@ def get_languages(parsed_xml):
     return language_list
 
 # Madách path
-path_list = ["/home/pg/Documents/GitHub/Madach_Az_ember_tragediaja/Genetikus-szöveg"]
+path_list = ["/home/pg/Documents/GitHub/Madach_Az_ember_tragediaja/Megállapított-szöveg"
+             ,"/home/pg/Documents/GitHub/Madach_Az_ember_tragediaja/Genetikus-szöveg"
+             ,"/home/pg/Documents/GitHub/Madach_Az_ember_tragediaja/Tanulmányok"]
 invenio_tsv = "madach_invenio_tsv.tsv"
 
 # TODO: tsv and Json creation do not run in parallel
@@ -183,6 +189,6 @@ for parsed, path in get_filenames(path_list):
     parsed = prettify_soup(parsed)
     new_soup = BeautifulSoup(parsed, 'xml')
     tsv_dict = tsv_from_xml(new_soup, path)
-    write_dict_to_tsv(tsv_dict, invenio_tsv)
-    json_folder = "/Madach_json"
-    # create_json_data(tsv_dict, json_folder)
+    # write_dict_to_tsv(tsv_dict, invenio_tsv)
+    json_folder = "Madach_json"
+    create_json_data(tsv_dict, json_folder)
