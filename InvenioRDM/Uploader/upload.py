@@ -69,7 +69,7 @@ def main(records, token):
 
 
 if __name__ == '__main__':
-    path = "/home/eltedh/GitHub/docs-invenio-rdm-restapi-example/"
+    path = "/home/pg/Documents/GitHub/XML-processing/InvenioRDM/Uploader"
     with open("token.txt", "r", encoding="utf8") as f:
         invenio_token = f.read().strip()
     for root, dirs, files in os.walk(path):

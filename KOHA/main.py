@@ -21,7 +21,7 @@ github_folder_list = [
 output_path = "/home/eltedh/PycharmProjects/XML-processing/KOHA/KOHA_output_data_AJOM/"
 create_koha_id_tsv(github_folder_list, output_path)
 
-# 2: Looking up KOHA ID's in a TSV (koha_pim.tsv) created from the KOHA dump (auths.txt) by koha_dump_2_tsc.py
+# 2: Looking up KOHA ID's in a TSV (koha_pim.tsv) created from the KOHA dump (auths.txt) by koha_dump_2_tsv.py
 # Output:KOHA/KOHA_output_data/koha_pim_biblio.tsv
 
 koha_pim_biblio(output_path + "koha_id_list.tsv",
