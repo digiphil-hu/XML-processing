@@ -174,7 +174,7 @@ def get_languages(parsed_xml):
     language_list = [(lan + ":" + european_languages[lan]) for lan in language_codes_set]
     return language_list
 
-# OLAHUS saját path
+# Madách path
 path_list = ["/home/pg/Documents/GitHub/Madach_Az_ember_tragediaja/Genetikus-szöveg"]
 invenio_tsv = "madach_invenio_tsv.tsv"
 
