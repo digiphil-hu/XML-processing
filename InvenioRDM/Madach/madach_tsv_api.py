@@ -191,6 +191,6 @@ for parsed, path in get_filenames(path_list):
     parsed = prettify_soup(parsed)
     new_soup = BeautifulSoup(parsed, 'xml')
     tsv_dict = tsv_from_xml(new_soup, path)
-    write_dict_to_tsv(tsv_dict, invenio_tsv)
+    # write_dict_to_tsv(tsv_dict, invenio_tsv)
     json_folder = "Madach_json"
-    # create_json_data(tsv_dict, json_folder)
+    create_json_data(tsv_dict, json_folder)
