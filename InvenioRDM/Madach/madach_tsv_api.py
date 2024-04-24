@@ -46,15 +46,17 @@ def tsv_from_xml(parsed_xml, xml_path):
     tsv_dict['Filename'] = PID + ".xml"
 
     # Main title
-    # main_title = normalize(parsed_xml.titleStmt.find('title', {'type': 'main'}).text)
-    main_title = normalize(parsed_xml.find('title').text)
+    main_title = normalize(parsed_xml.titleStmt.find('title', {'type': 'main'}).text)
+    # main_title = normalize(parsed_xml.find('title').text)
+    author = (parsed_xml.titleStmt.find('author').find('surname').text.strip() +
+                  " " + parsed_xml.titleStmt.find('author').find('forename').text.strip())
     tsv_dict['Title'] = main_title
 
     # Description
     description_text = normalize(parsed_xml.sourceDesc.find("title", {"type": "main"}).text)
     description = ("<p> "
-                  + "<br>" + description_text + "<br> "
-                  + main_title + "</p")
+                  + "<br>" "Madách Imre: " + description_text + "<br> "
+                  + author + ": " + main_title + "</p>")
     tsv_dict['Description'] = description
 
     # Fixed values
@@ -189,6 +191,6 @@ for parsed, path in get_filenames(path_list):
     parsed = prettify_soup(parsed)
     new_soup = BeautifulSoup(parsed, 'xml')
     tsv_dict = tsv_from_xml(new_soup, path)
-    # write_dict_to_tsv(tsv_dict, invenio_tsv)
+    write_dict_to_tsv(tsv_dict, invenio_tsv)
     json_folder = "Madach_json"
-    create_json_data(tsv_dict, json_folder)
+    # create_json_data(tsv_dict, json_folder)

@@ -1,6 +1,6 @@
 import csv
 
-from xml_methods import get_filenames, normalize, prettify_soup
+from xml_methods import get_filenames, normalize, prettify_soup, remove_comments
 
 path_list = ["/home/pg/Documents/GitHub/Madach_Az_ember_tragediaja/Megállapított-szöveg"
              ,"/home/pg/Documents/GitHub/Madach_Az_ember_tragediaja/Genetikus-szöveg"
@@ -9,13 +9,15 @@ path_list = ["/home/pg/Documents/GitHub/Madach_Az_ember_tragediaja/Megállapíto
 
 
 for parsed, path in get_filenames(path_list):
+    new_path = path.replace("/home/pg/Documents/GitHub/Madach_Az_ember_tragediaja", "/home/pg/Documents/GitHub/XML-processing/InvenioRDM/Madach")
     for ref in parsed.find_all("ref", {"target": True}):
-        for old_target in ref_dict.keys():
-            if old_target in ref["target"]:
-                ref["target"] = ref["target"].replace(old_target, ref_dict[old_target])
-        print(ref["target"])
+        if ref["target"].startswith("mi-aet"):
+            ref["target"] = "https://hdl.handle.net/20.500.14368/" + ref["target"]
+            if "°" in ref.text:
+                ref.string = ""
+    parsed_new = remove_comments(parsed)
 
-    with open(path, "w", encoding="utf8") as f:
+    with open(new_path, "w", encoding="utf8") as f:
         f.write(prettify_soup(parsed))
 
 

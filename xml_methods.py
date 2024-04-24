@@ -3,7 +3,7 @@ import os
 import re
 from collections import Counter
 from datetime import datetime
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Comment
 import lxml
 
 import get_geo_namespace_id_itidata
@@ -297,3 +297,11 @@ def process_dictionary(input_dict):
         if value.lstrip('Q').isnumeric():
             result[key] = get_geo_namespace_id_itidata.get_eng_hun_item_labels_from_itidata(result[key], "")
     return result
+
+def remove_comments(bs_obj):
+    # Find all comment elements
+    comments = bs_obj.find_all(string=lambda text: isinstance(text, Comment))
+    # Remove each comment
+    for comment in comments:
+        comment.extract()
+    return bs_obj
