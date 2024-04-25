@@ -78,8 +78,14 @@ if __name__ == '__main__':
                 filename_json = filenames
                 filename_xml = filename_json.replace(".json", ".xml")
                 if filename_xml not in files:
-                    print(f"File error: {filename_json} has no .xml")
+                    print(f"Uploading {filename_xml} failed.")
                     break
+
+    for root, dirs, files in os.walk(path):
+        for filenames in files:
+            if filenames.endswith(".json"):
+                filename_json = filenames
+                filename_xml = filename_json.replace(".json", ".xml")
                 metadata_and_file = [(filename_json, [filename_xml, ])]
                 print(metadata_and_file)
                 main(metadata_and_file, invenio_token)

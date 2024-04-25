@@ -181,9 +181,7 @@ def get_languages(parsed_xml):
     return language_list
 
 # Madách path
-path_list = ["/home/pg/Documents/GitHub/Madach_Az_ember_tragediaja/Megállapított-szöveg"
-             ,"/home/pg/Documents/GitHub/Madach_Az_ember_tragediaja/Genetikus-szöveg"
-             ,"/home/pg/Documents/GitHub/Madach_Az_ember_tragediaja/Tanulmányok"]
+path_list = ["/home/pg/Documents/GitHub/Madach_Az_ember_tragediaja/corrections-new"]
 invenio_tsv = "madach_invenio_tsv.tsv"
 
 # TODO: tsv and Json creation do not run in parallel
