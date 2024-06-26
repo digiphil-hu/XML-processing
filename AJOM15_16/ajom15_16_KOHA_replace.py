@@ -76,11 +76,15 @@ for parsed, path in get_filenames(folder_list):
         # Delete empty placeName, persName, idno
         parsed = delete_empty_tags(parsed=parsed, tag_list=["persName", "placeName", "idno"])
 
-        # Delete KOHA_GEO
+        # Delete KOHA_GEO if it is empty
         for idno_tag in parsed.find_all("idno"):
             if idno_tag.get("type") == "KOHA_GEO":
                 if idno_tag.text.strip() != "":
                     print(path, idno_tag)
+                elif idno_tag.get("corresp") is None:
+                    idno_tag.decompose()
+                else:
+                    del idno_tag["type"]
 
             # Check if idno text is numeric.
             if idno_tag.text.strip() != "":
@@ -91,7 +95,7 @@ for parsed, path in get_filenames(folder_list):
                             idno_text = idno_text.split(":")[1]
                         if idno_text.startswith("Q"):
                             idno_text = idno_text.replace("Q", "")
-                        if idno_text.isdigit():
+                        if not idno_text.isdigit():
                             print(idno_tag)
 
         # Add identifier to placeNames in creation
@@ -114,4 +118,29 @@ for parsed, path in get_filenames(folder_list):
 
         # placeName-s in correspDesc
         for corr_act in parsed.teiHeader.correspDesc.find_all("correspAction"):
-            for place_name in corr_act.find_all("placeName"):
+
+            # correspAction send and received
+            if corr_act["type"] != "address":
+                for place_name in corr_act.find_all("placeName"):
+                    if place_name.find("idno"):
+                        # print(place_name.idno)
+                        idno_name = place_name.text.strip().split("Q")[0] if place_name.idno.get("corresp") is None \
+                            else place_name.idno.get("corresp")
+                        if place_name.idno["type"] == "ITIdata":
+                            if place_name.idno.text.strip() != geo_dict[idno_name]:
+                                print("ERROR in <correspAction><placeName>: ", path, place_name)
+                        else:
+                            place_name.idno["type"] = "ITIdata"
+                            place_name.idno.string = geo_dict[idno_name]
+                            # print(place_name.idno)
+                    else:
+                        idno_tag = parsed.new_tag(name="idno")
+                        idno_tag["type"] = "ITIdata"
+                        idno_tag.string = geo_dict[place_name.text.strip()]
+                        place_name.insert(1, idno_tag)
+                        # print(place_name)
+
+            else:
+                for place_name in corr_act.find_all("placeName"):
+                    if place_name.find("idno"):
+                        print(place_name.idno)
