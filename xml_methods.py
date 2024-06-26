@@ -305,3 +305,13 @@ def remove_comments(bs_obj):
     for comment in comments:
         comment.extract()
     return bs_obj
+
+def delete_empty_tags(parsed, tag_list):
+
+# Delete empty tags given in a list from a parsed ML
+
+    tag_to_delete = tag_list
+    for empty_tag in parsed.find_all(tagname for tagname in tag_to_delete):
+        if empty_tag.text.strip() == "" and len(empty_tag.attrs) == 0:
+            empty_tag.decompose()
+    return parsed
