@@ -9,16 +9,18 @@ from itidata_query import itidata_query
 # 1: extract KOHA and VIAF ID's from XML files of a given list of folders
 
 github_folder_list = [
-                    "/home/eltedh/GitHub/migration-ajom-17",
-                    "/home/eltedh/GitHub/migration-ajom-18",
-                    "/home/eltedh/GitHub/migration-ajom-19",
+                    "/home/pg/Documents/GitHub/migration-ajom-15",
+                    "/home/pg/Documents/GitHub/migration-ajom-16"
+                    # "/home/eltedh/GitHub/migration-ajom-17",
+                    # "/home/eltedh/GitHub/migration-ajom-18",
+                    # "/home/eltedh/GitHub/migration-ajom-19",
                     # "/home/eltedh/GitHub/Petofi_Sandor"
                     # "/home/eltedh/GitHub/RMKT-XVII-16/RMKT-XVII-6",
                     # "/home/eltedh/GitHub/RMKT-XVII-16/RMKT-XVII-12",
                     # "/home/eltedh/GitHub/RMKT-XVII-16/RMKT-XVII-16"
                     ]
 
-output_path = "/home/eltedh/PycharmProjects/XML-processing/KOHA/KOHA_output_data_AJOM/"
+output_path = "/home/pg/Documents/GitHub/XML-processing/KOHA/KOHA_output_data_AJOM15-16/"
 create_koha_id_tsv(github_folder_list, output_path)
 
 # 2: Looking up KOHA ID's in a TSV (koha_pim.tsv) created from the KOHA dump (auths.txt) by koha_dump_2_tsv.py

@@ -41,7 +41,7 @@ def traverse_xml_tree(graph, element, parent_tag, connections_set):
 
 if __name__ == "__main__":
     # Specify the folder containing TEI XML files
-    xml_folder = '/home/eltedh/PycharmProjects/XML-processing/RMKT_17_16/XML'
+    xml_folder = '/home/pg/Documents/GitHub/Babits_lira/BABITS 4'
 
     # Visualize the XML hierarchy
     visualize_xml_hierarchy(xml_folder)

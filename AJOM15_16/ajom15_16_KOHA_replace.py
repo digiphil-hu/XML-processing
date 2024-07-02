@@ -140,7 +140,17 @@ for parsed, path in get_filenames(folder_list):
                         place_name.insert(1, idno_tag)
                         # print(place_name)
 
-            else:
-                for place_name in corr_act.find_all("placeName"):
-                    if place_name.find("idno"):
-                        print(place_name.idno)
+            # correspAct address
+            # else:
+            #     for place_name in corr_act.find_all("placeName"):
+            #         if place_name.find("idno"):
+            #             pass
+            #         else:
+            #             print(place_name)
+
+        #
+
+        # file_name = path.split("/")[-1]
+        # new_path = "/home/pg/Documents/GitHub/XML-processing/AJOM15_16/XML/" + file_name
+        # with open(new_path, "w", encoding="utf-8") as f:
+        #     f.write(prettify_soup(parsed))
